@@ -46,12 +46,17 @@ app.post("/generate", async (req, res) => {
   </html>
   `;
 
-  const browser = await puppeteerCore.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
-  });
+  let browser;
+  if (process.env.NODE_ENV === "production") {
+    browser = await puppeteerCore.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  } else {
+    browser = await puppeteer.launch();
+  }
   const page = await browser.newPage();
 
   try {
