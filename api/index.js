@@ -5,7 +5,7 @@ const path = require("path");
 const { default: puppeteer } = require("puppeteer");
 const chromium = require("@sparticuz/chromium");
 const puppeteerCore = require("puppeteer-core");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client } = require("@aws-sdk/client-s3");
 const { Upload } = require("@aws-sdk/lib-storage");
 
 const s3Client = new S3Client({
@@ -84,8 +84,8 @@ app.post("/generate", async (req, res) => {
     });
 
     const uploadParams = {
-      Bucket: "quick-opslag", // Replace with your S3 bucket name
-      Key: `pdf/${orderId}.pdf`, // The path and file name in the S3 bucket
+      Bucket: "quick-opslag",
+      Key: `pdf/${orderId}.pdf`,
       Body: pdfBuffer,
       ContentType: "application/pdf",
     };
