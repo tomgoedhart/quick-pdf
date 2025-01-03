@@ -1,9 +1,20 @@
+require("dotenv").config();
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const { default: puppeteer } = require("puppeteer");
 const chromium = require("@sparticuz/chromium");
 const puppeteerCore = require("puppeteer-core");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { Upload } = require("@aws-sdk/lib-storage");
+
+const s3Client = new S3Client({
+  credentials: {
+    accessKeyId: process.env.NODE_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.NODE_AWS_SECRET_ACCESS_KEY,
+  },
+  region: process.env.NODE_AWS_REGION,
+});
 const app = express();
 const port = process.env.PORT || 3000;
 const header = require("./header");
@@ -62,8 +73,8 @@ app.post("/generate", async (req, res) => {
   try {
     await page.setContent(htmlContent);
     await page.emulateMediaType("print");
-    await page.pdf({
-      path: `./pdf/${orderId}.pdf`,
+    const pdfBuffer = await page.pdf({
+      // path: `./pdf/${orderId}.pdf`,
       format: "A4",
       printBackground: true,
       margin: { top: "1cm", right: "1cm", bottom: "1cm", left: "1cm" },
@@ -71,6 +82,21 @@ app.post("/generate", async (req, res) => {
       headerTemplate: header.default,
       footerTemplate: footer.default,
     });
+
+    const uploadParams = {
+      Bucket: "quick-opslag", // Replace with your S3 bucket name
+      Key: `pdf/${orderId}.pdf`, // The path and file name in the S3 bucket
+      Body: pdfBuffer,
+      ContentType: "application/pdf",
+    };
+
+    const upload = new Upload({
+      client: s3Client,
+      params: uploadParams,
+    });
+
+    await upload.done();
+
     await browser.close();
     console.log("PDF file generated successfully");
   } catch (error) {
@@ -81,7 +107,7 @@ app.post("/generate", async (req, res) => {
 
   res.json({
     message: "PDF file generated successfully",
-    url: `http://localhost:${port}/pdf/${orderId}.pdf`,
+    url: `https://quick-opslag.s3.amazonaws.com/pdf/${orderId}.pdf`,
   });
 });
 
