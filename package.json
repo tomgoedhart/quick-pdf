@@ -1,7 +1,7 @@
 {
   "name": "quickgraveer-pdf-api",
   "version": "1.0.0",
-  "description": "A Node.js project that demonstrates basic functionality.",
+  "description": "Provides an API endpoint that generates PDF's",
   "main": "api/index.js",
   "scripts": {
     "start": "node api/index.js"
