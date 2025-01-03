@@ -1,5 +1,5 @@
 {
-  "name": "Quickgraveer PDF API",
+  "name": "quickgraveer-pdf-api",
   "version": "1.0.0",
   "description": "A Node.js project that demonstrates basic functionality.",
   "main": "src/index.js",
