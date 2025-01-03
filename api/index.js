@@ -2,6 +2,8 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const { default: puppeteer } = require("puppeteer");
+const chromium = require("@sparticuz/chromium");
+const puppeteerCore = require("puppeteer-core");
 const app = express();
 const port = process.env.PORT || 3000;
 const header = require("./header");
@@ -44,18 +46,12 @@ app.post("/generate", async (req, res) => {
   </html>
   `;
 
-  // const filePath = path.join(__dirname, `${orderId}.html`);
-
-  // fs.writeFile(filePath, htmlContent, (err) => {
-  //   if (err) {
-  //     console.error("Error writing file", err);
-  //     res.status(500).json({ message: "Error writing file" });
-  //     return;
-  //   }
-  //   console.log("HTML file generated successfully");
-  // });
-
-  const browser = await puppeteer.launch();
+  const browser = await puppeteerCore.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
   const page = await browser.newPage();
 
   try {
