@@ -1,0 +1,37 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  print-color-adjust: exact;
+}
+
+h1 {
+  color: blue;
+}
+
+.item {
+  margin: 1cm 0;
+  padding: 1cm 0;
+  border-top: 1px solid #ccc;
+  break-inside: avoid;
+}
+
+footer {
+  margin: auto;
+  width: 100%;
+  color: red;
+  font-size: 18px;
+}
+
+footer p {
+  font-size: 18px;
+}
+
+@page {
+  padding: 4cm 0;
+}
