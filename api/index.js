@@ -44,16 +44,16 @@ app.post("/generate", async (req, res) => {
   </html>
   `;
 
-  const filePath = path.join(__dirname, `${orderId}.html`);
+  // const filePath = path.join(__dirname, `${orderId}.html`);
 
-  fs.writeFile(filePath, htmlContent, (err) => {
-    if (err) {
-      console.error("Error writing file", err);
-      res.status(500).json({ message: "Error writing file" });
-      return;
-    }
-    console.log("HTML file generated successfully");
-  });
+  // fs.writeFile(filePath, htmlContent, (err) => {
+  //   if (err) {
+  //     console.error("Error writing file", err);
+  //     res.status(500).json({ message: "Error writing file" });
+  //     return;
+  //   }
+  //   console.log("HTML file generated successfully");
+  // });
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
