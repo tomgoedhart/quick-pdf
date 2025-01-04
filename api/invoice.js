@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
 
-const invoiceTemplate = (data) => `
+const invoiceHtml = (data) => `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -18,9 +18,9 @@ const invoiceTemplate = (data) => `
     </style>
   </head>
   <body>
-    <h1>${data.order_info?.order_number}</h1>
-    <p>${data.order_info?.order_date}</p>
-    <p>${data.order_info?.reference_name}</p>
+    <h1>${data.order_info.order_number}</h1>
+    <p>${data.order_info.order_date}</p>
+    <p>${data.order_info.reference_name}</p>
     ${data.items
       .map(
         (item) => `
@@ -36,4 +36,4 @@ const invoiceTemplate = (data) => `
   </html>
 `;
 
-export default invoiceTemplate;
+export default invoiceHtml;

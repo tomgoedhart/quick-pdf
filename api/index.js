@@ -9,7 +9,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { dirname } from "path";
 import header from "./header.js";
 import footer from "./footer.js";
-import contentInvoice from "./invoice.js";
+import invoiceHtml from "./invoice.js";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -89,11 +89,22 @@ const generatePdf = async (path, html, res) => {
 };
 
 app.post("/invoice", async (req, res) => {
-  const data = req.body;
-  console.warn("Generating invoice for:", data);
-  const html = contentInvoice(data);
-  const path = data.path;
-  await generatePdf(path, html, res);
+  try {
+    const data = req.body;
+    console.warn("Generating invoice for:", data);
+
+    if (!data) {
+      throw new Error("No data provided");
+    }
+
+    const html = invoiceHtml(data);
+    console.warn("HTML", html);
+    const path = data.path;
+    await generatePdf(path, html, res);
+  } catch (error) {
+    console.error("Error processing invoice:", error);
+    res.status(400).json({ error: error.message });
+  }
 });
 
 app.listen(port, () => {
