@@ -11,7 +11,12 @@ body {
 }
 
 h1 {
-  color: blue;
+  font-size: 2em;
+  font-weight: normal;
+}
+
+h2 {
+  font-size: 1em;
 }
 
 .item {
@@ -21,15 +26,63 @@ h1 {
   break-inside: avoid;
 }
 
-footer {
-  margin: auto;
-  width: 100%;
-  color: red;
-  font-size: 18px;
+.order-header {
+  display: flex;
+  margin-bottom: 20px;
 }
 
-footer p {
-  font-size: 18px;
+.company-info,
+.order-info,
+.customer-info {
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+}
+
+.table tr {
+  break-inside: avoid;
+}
+
+.table th,
+.table td {
+  border: none;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table tr:nth-child(odd) td {
+  border-top: 1px solid #eee;
+}
+
+.table .item-specifications td {
+  padding: 0 8px 8px;
+}
+
+.table .item-specifications table tr td {
+  border: none !important;
+  padding: 0 8px 0 0;
+}
+
+.totals {
+  margin-top: 20px;
+}
+
+.totals p {
+  margin: 0;
+}
+
+.footer-note {
+  font-size: 0.9em;
+  color: #555;
 }
 
 @page {

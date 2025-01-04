@@ -12,6 +12,7 @@ import footer from "./footer.js";
 import invoiceHeader from "./invoiceHeader.js";
 import invoiceFooter from "./invoiceFooter.js";
 import invoiceHtml from "./invoice.js";
+import orderHtml from "./order.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -130,6 +131,22 @@ app.post("/invoice", async (req, res) => {
     res
       .status(400)
       .json({ error: "Error processing invoice", message: error.message });
+  }
+});
+
+app.post("/order", async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data) {
+      throw new Error("No data provided");
+    }
+    const html = orderHtml(data);
+    await generatePdf(data, html, res);
+  } catch (error) {
+    console.error("Error processing order:", error);
+    res
+      .status(400)
+      .json({ error: "Error processing order", message: error.message });
   }
 });
 
