@@ -90,6 +90,7 @@ const generatePdf = async (path, html, res) => {
 
 app.post("/invoice", async (req, res) => {
   const data = req.body;
+  console.warn("Generating invoice for:", data);
   const html = contentInvoice(data);
   const path = data.path;
   await generatePdf(path, html, res);

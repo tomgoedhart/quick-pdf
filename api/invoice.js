@@ -18,9 +18,9 @@ const invoiceTemplate = (data) => `
     </style>
   </head>
   <body>
-    <h1>${data.order_info.order_number}</h1>
-    <p>${data.order_info.order_date}</p>
-    <p>${data.order_info.reference_name}</p>
+    <h1>${data.order_info?.order_number}</h1>
+    <p>${data.order_info?.order_date}</p>
+    <p>${data.order_info?.reference_name}</p>
     ${data.items
       .map(
         (item) => `
