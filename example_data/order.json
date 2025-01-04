@@ -1,0 +1,96 @@
+{
+  "type": "Order",
+  "print": false,
+  "printer": "kantoor",
+  "path": "Klanten/K/Kees Broersen/2025/Orders/P2500002/invoice.pdf",
+  "header": {
+    "logo": "Logo text/image info",
+    "company_info": {
+      "name": "Quick Graveer Service",
+      "address": "De Oude Veiling 60",
+      "postal_code": "1689 AC",
+      "city": "Zwaag",
+      "country": "Nederland",
+      "contact": {
+        "phone": "+31 (0)229 57 32 96",
+        "email": "info@qgraveer.com",
+        "website": "www.qgraveer.com"
+      },
+      "registration": {
+        "kvk": "360.38.415",
+        "btw": "NL 8028.47.262.B01"
+      }
+    },
+    "title": "Pakbon"
+  },
+  "order_info": {
+    "description": "Deksel (2 stuks) uit 3mm rood translucent acrylaat (10x)",
+    "order_date": "9 april 2019",
+    "order_number": "P1234567",
+    "reference_number": "Geen",
+    "reference_name": "Eugène Faas"
+  },
+  "customer": {
+    "name": "Customer name",
+    "address": "Street and number",
+    "postal_code": "1234 AB",
+    "city": "City"
+  },
+  "header_labels": {
+    "qty": "Aantal",
+    "item": "Artikel",
+    "price_per_unit": "Prijs per stuk",
+    "discount": "Korting",
+    "price": "Prijs"
+  },
+  "items": [
+    {
+      "name": "Product name",
+      "price_per_unit": "€XX,XX",
+      "quantity": "X",
+      "total": "€XX,XX",
+      "discount_percentage": "X%",
+      "discount_amount": "€XX,XX",
+      "specifications": {
+        "technique": "Technique type",
+        "material": "Material type",
+        "format": {
+          "width": "XXX mm",
+          "height": "XXX mm"
+        },
+        "self_adhesive": "Yes/No"
+      }
+    }
+  ],
+  "totals": {
+    "subtotal": {
+      "cost": "€XX,XX",
+      "label": "Subtotaal"
+    },
+    "discount": {
+      "cost": "€XX,XX",
+      "label": "Korting"
+    },
+    "small_order_fee": {
+      "cost": "€XX,XX",
+      "label": "Kleinorderkosten"
+    },
+    "shipping": {
+      "cost": "€XX,XX",
+      "method": "Post NL",
+      "label": "Verzendkosten"
+    },
+    "total": {
+      "cost": "€XX,XX",
+      "label": "Totaal (Excl. BTW)"
+    }
+  },
+  "footer": {
+    "footer_header": "Ingeschreven K.v.K Hoorn nr. 360.38.415.",
+    "footer_body": "Op al onze offertes, op alle opdrachten aan ons en op alle met ons gesloten overeenkomsten zijn toepasselijk de METAALUNIEVOORWAARDEN. De leveringsvoorwaarden worden u, indien gewenst, kostenloos toegezonden.",
+    "additional_note_header": "Any additional information",
+    "additional_notes": "Bij opdrachten onder de 10 euro, worden er 5 euro kleinorderkosten in rekening gebracht.",
+    "quote_expiry": "Deze offerte vervalt op 09-05-2019",
+    "quote_staff": "Deze is u aangeboden door Maarten"
+  }
+}

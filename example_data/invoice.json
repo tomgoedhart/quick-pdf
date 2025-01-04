@@ -1,8 +1,8 @@
 {
-  "type": "Order",
+  "type": "Factuur",
   "print": false,
   "printer": "kantoor",
-  "path": "/Klanten/K/Kees Broersen/2025/Orders/P2500002/invoice.pdf",
+  "path": "Klanten/K/Kees Broersen/2025/Facturen/",
   "header": {
     "logo": "Logo text/image info",
     "company_info": {
@@ -10,25 +10,16 @@
       "address": "De Oude Veiling 60",
       "postal_code": "1689 AC",
       "city": "Zwaag",
-      "country": "Nederland",
       "contact": {
         "phone": "+31 (0)229 57 32 96",
         "email": "info@qgraveer.com",
         "website": "www.qgraveer.com"
-      },
-      "registration": {
-        "kvk": "360.38.415",
-        "btw": "NL 8028.47.262.B01"
       }
     },
-    "title": "Pakbon"
-  },
-  "order_info": {
-    "description": "Deksel (2 stuks) uit 3mm rood translucent acrylaat (10x)",
-    "order_date": "9 april 2019",
-    "order_number": "P1234567",
-    "reference_number": "Geen",
-    "reference_name": "Eugène Faas"
+    "title": "Factuur",
+    "number": "F202234",
+    "date": "06-11-2020",
+    "vat_number": "NL895678987"
   },
   "customer": {
     "name": "Customer name",
@@ -37,29 +28,28 @@
     "city": "City"
   },
   "header_labels": {
-    "qty": "Aantal",
-    "item": "Artikel",
+    "date": "Projectdatum",
+    "order": "Order",
     "price_per_unit": "Prijs per stuk",
     "discount": "Korting",
-    "price": "Prijs"
+    "price": "Eindprijs"
   },
   "items": [
     {
-      "name": "Product name",
-      "price_per_unit": "€XX,XX",
-      "quantity": "X",
-      "total": "€XX,XX",
-      "discount_percentage": "X%",
-      "discount_amount": "€XX,XX",
-      "specifications": {
-        "technique": "Technique type",
-        "material": "Material type",
-        "format": {
-          "width": "XXX mm",
-          "height": "XXX mm"
-        },
-        "self_adhesive": "Yes/No"
-      }
+      "date": "04-11-2020",
+      "order": "P2011040",
+      "reference_name": "Referentie: Bonne Heeringa",
+      "reference_number": "Vacuumkoeler brood/Vacuum Dryer Cigars",
+      "project_description": "Type platen",
+      "items": [
+        {
+          "qty": "1",
+          "description": "150x150 Typeplaat gesublimeerd 150x150mm",
+          "price_per_unit": "€58,20",
+          "discount": "€58,20",
+          "price": "€58,20"
+        }
+      ]
     }
   ],
   "totals": {
@@ -67,30 +57,24 @@
       "cost": "€XX,XX",
       "label": "Subtotaal"
     },
-    "discount": {
+    "vat": {
       "cost": "€XX,XX",
-      "label": "Korting"
-    },
-    "small_order_fee": {
-      "cost": "€XX,XX",
-      "label": "Kleinorderkosten"
-    },
-    "shipping": {
-      "cost": "€XX,XX",
-      "method": "Post NL",
-      "label": "Verzendkosten"
+      "label": "21 % BTW"
     },
     "total": {
       "cost": "€XX,XX",
-      "label": "Totaal (Excl. BTW)"
+      "label": "Totaal Factuur"
     }
   },
   "footer": {
-    "footer_header": "Ingeschreven K.v.K Hoorn nr. 360.38.415.",
+    "footer_header": "Ingeschreven K.v.K Hoorn nr. 360.38.415",
     "footer_body": "Op al onze offertes, op alle opdrachten aan ons en op alle met ons gesloten overeenkomsten zijn toepasselijk de METAALUNIEVOORWAARDEN. De leveringsvoorwaarden worden u, indien gewenst, kostenloos toegezonden.",
-    "additional_note_header": "Any additional information",
+    "additional_note_header": "Te voldoen vóór 06-12-2020 (30 dagen).",
     "additional_notes": "Bij opdrachten onder de 10 euro, worden er 5 euro kleinorderkosten in rekening gebracht.",
-    "quote_expiry": "Deze offerte vervalt op 09-05-2019",
-    "quote_staff": "Deze is u aangeboden door Maarten"
+    "bank_details": "Bank: Rabobank",
+    "bank_account": "Rek. nr.: 14.89.35.656",
+    "kvk": "360.38.415",
+    "iban": "IBAN: NL67 RABO 0148 9356 56",
+    "bic": "BIC: RABONL2U"
   }
 }

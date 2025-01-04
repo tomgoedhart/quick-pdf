@@ -9,6 +9,8 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { dirname } from "path";
 import header from "./header.js";
 import footer from "./footer.js";
+import invoiceHeader from "./invoiceHeader.js";
+import invoiceFooter from "./invoiceFooter.js";
 import invoiceHtml from "./invoice.js";
 
 const app = express();
@@ -23,8 +25,10 @@ const generatePdf = async (data, html, res) => {
     printBackground: true,
     margin: { top: "1cm", right: "1cm", bottom: "1cm", left: "1cm" },
     displayHeaderFooter: true,
-    headerTemplate: header(data),
-    footerTemplate: footer(data),
+    headerTemplate:
+      data.type === "Factuur" ? invoiceHeader(data) : header(data),
+    footerTemplate:
+      data.type === "Factuur" ? invoiceFooter(data) : footer(data),
   };
 
   let browser;
@@ -56,7 +60,9 @@ const generatePdf = async (data, html, res) => {
     console.log("PDF file generated successfully");
   } catch (error) {
     console.error("Error generating PDF:", error);
-    res.status(500).json({ error: "Error generating PDF" });
+    res
+      .status(500)
+      .json({ error: "Error generating PDF", message: error.message });
   }
 
   // Generate HTML for development
@@ -66,7 +72,9 @@ const generatePdf = async (data, html, res) => {
       console.log("HTML file generated successfully");
     } catch (error) {
       console.error("Error generating HTML:", error);
-      res.status(500).json({ error: "Error generating HTML" });
+      res
+        .status(500)
+        .json({ error: "Error generating HTML", message: error.message });
     }
   }
 
@@ -101,7 +109,9 @@ const generatePdf = async (data, html, res) => {
     });
   } catch (error) {
     console.error("Error uploading PDF:", error);
-    res.status(500).json({ error: "Error uploading PDF" });
+    res
+      .status(500)
+      .json({ error: "Error uploading PDF", message: error.message });
   } finally {
     await browser.close();
   }
@@ -117,7 +127,9 @@ app.post("/invoice", async (req, res) => {
     await generatePdf(data, html, res);
   } catch (error) {
     console.error("Error processing invoice:", error);
-    res.status(400).json({ error: error.message });
+    res
+      .status(400)
+      .json({ error: "Error processing invoice", message: error.message });
   }
 });
 

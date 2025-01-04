@@ -18,18 +18,33 @@ const invoiceHtml = (data) => `
     </style>
   </head>
   <body>
-    <h1>${data.order_info.order_number}</h1>
-    <p>${data.order_info.order_date}</p>
-    <p>${data.order_info.reference_name}</p>
+    <h1>Factuur</h1>
+    <p>Nummer: ${data.header.number}</p>
+    <p>Datum: ${data.header.date}</p>
     ${data.items
       .map(
         (item) => `
       <div class="item">
-        <h2>${item.name}</h2>
-        <p>${item.quantity}</p>
-        <p>${item.total}</p>
-      </div>
-    `
+        <p>Datum: ${item.date}</p>
+        <p>Order: ${item.order}</p>
+        <p>${item.reference_name}</p>
+        <p>${item.reference_number}</p>
+        <p>${item.project_description}</p>
+        ${item.items
+          .map(
+            (subItem) => `
+              <div class="sub-item">
+                <h2>${subItem.description}</h2>
+                <p>Aantal: ${subItem.qty}</p>
+                <p>Prijs per eenheid: ${subItem.price_per_unit}</p>
+                <p>Korting: ${subItem.discount}</p>
+                <p>Totaal: ${subItem.price}</p>
+              </div>
+            `
+          )
+          .join("")}
+          </div>
+        `
       )
       .join("")}
   </body>
