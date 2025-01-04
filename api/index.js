@@ -52,13 +52,21 @@ const generatePdf = async (path, html, res) => {
     });
   }
 
-  const page = await browser.newPage();
-  await page.setContent(html);
-  await page.emulateMediaType("print");
+  let pdfBuffer;
 
   try {
-    const pdfBuffer = await page.pdf(pdfProperties);
+    const page = await browser.newPage();
+    await page.setContent(html);
+    await page.emulateMediaType("print");
 
+    pdfBuffer = await page.pdf(pdfProperties);
+    console.log("PDF file generated successfully");
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ error: "Error generating PDF" });
+  }
+
+  try {
     if (process.env.NODE_ENV === "production") {
       const uploadParams = {
         Bucket: "quick-opslag",
@@ -75,14 +83,13 @@ const generatePdf = async (path, html, res) => {
       await upload.done();
     }
 
-    console.log("PDF file generated successfully");
     res.json({
       message: "PDF generated and uploaded successfully",
       url: `https://quick-opslag.s3.amazonaws.com/${path}`,
     });
   } catch (error) {
-    console.error("Error generating PDF:", error);
-    res.status(500).json({ error: "Error generating PDF" });
+    console.error("Error uploading PDF:", error);
+    res.status(500).json({ error: "Error uploading PDF" });
   } finally {
     await browser.close();
   }
@@ -91,14 +98,10 @@ const generatePdf = async (path, html, res) => {
 app.post("/invoice", async (req, res) => {
   try {
     const data = req.body;
-    console.warn("Generating invoice for:", data);
-
     if (!data) {
       throw new Error("No data provided");
     }
-
     const html = invoiceHtml(data);
-    console.warn("HTML", html);
     const path = data.path;
     await generatePdf(path, html, res);
   } catch (error) {
