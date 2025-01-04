@@ -11,14 +11,6 @@ import header from "./header.js";
 import footer from "./footer.js";
 import invoiceHtml from "./invoice.js";
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -68,6 +60,14 @@ const generatePdf = async (path, html, res) => {
 
   try {
     if (process.env.NODE_ENV === "production") {
+      const s3Client = new S3Client({
+        region: process.env.NODE_AWS_REGION,
+        credentials: {
+          accessKeyId: process.env.NODE_AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.NODE_AWS_SECRET_ACCESS_KEY,
+        },
+      });
+
       const uploadParams = {
         Bucket: "quick-opslag",
         Key: path,
