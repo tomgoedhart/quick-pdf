@@ -16,14 +16,15 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const generatePdf = async (path, html, res) => {
+const generatePdf = async (data, html, res) => {
+  const path = data.path;
   const pdfProperties = {
     format: "A4",
     printBackground: true,
     margin: { top: "1cm", right: "1cm", bottom: "1cm", left: "1cm" },
     displayHeaderFooter: true,
-    headerTemplate: header,
-    footerTemplate: footer,
+    headerTemplate: header(data),
+    footerTemplate: footer(data),
   };
 
   let browser;
@@ -56,6 +57,17 @@ const generatePdf = async (path, html, res) => {
   } catch (error) {
     console.error("Error generating PDF:", error);
     res.status(500).json({ error: "Error generating PDF" });
+  }
+
+  // Generate HTML for development
+  if (process.env.NODE_ENV === "development") {
+    try {
+      fs.writeFileSync(pdfProperties.path.replace(".pdf", ".html"), html);
+      console.log("HTML file generated successfully");
+    } catch (error) {
+      console.error("Error generating HTML:", error);
+      res.status(500).json({ error: "Error generating HTML" });
+    }
   }
 
   try {
@@ -102,8 +114,7 @@ app.post("/invoice", async (req, res) => {
       throw new Error("No data provided");
     }
     const html = invoiceHtml(data);
-    const path = data.path;
-    await generatePdf(path, html, res);
+    await generatePdf(data, html, res);
   } catch (error) {
     console.error("Error processing invoice:", error);
     res.status(400).json({ error: error.message });
