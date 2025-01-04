@@ -1,114 +1,98 @@
-require("dotenv").config();
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const { default: puppeteer } = require("puppeteer");
-const chromium = require("@sparticuz/chromium");
-const puppeteerCore = require("puppeteer-core");
-const { S3Client } = require("@aws-sdk/client-s3");
-const { Upload } = require("@aws-sdk/lib-storage");
+import "dotenv/config";
+import express from "express";
+import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteerCore from "puppeteer-core";
+import fs from "fs";
+import { S3Client } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import { dirname } from "path";
+import header from "./header.js";
+import footer from "./footer.js";
+import contentInvoice from "./invoice.js";
 
 const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: process.env.NODE_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.NODE_AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
-  region: process.env.NODE_AWS_REGION,
 });
+
 const app = express();
 const port = process.env.PORT || 3000;
-const header = require("./header");
-const footer = require("./footer");
 
 app.use(express.json());
 
-app.post("/generate", async (req, res) => {
-  const data = req.body;
-  const styles = fs.readFileSync(path.join(__dirname, "styles.css"), "utf8");
-  const orderId = data.orderId;
-
-  const htmlContent = `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated HTML</title>
-    <style>
-      ${styles}
-    </style>
-  </head>
-  <body>
-    <h1>${orderId}</h1>
-    <p>${data.orderDate}</p>
-    <p>${data.customerName}</p>
-    ${data.items
-      .map(
-        (item) => `
-      <div class="item">
-        <h2>${item.productName}</h2>
-        <p>${item.quantity}</p>
-        <p>${item.price}</p>
-      </div>
-    `
-      )
-      .join("")}
-  </body>
-  </html>
-  `;
+const generatePdf = async (path, html, res) => {
+  const pdfProperties = {
+    format: "A4",
+    printBackground: true,
+    margin: { top: "1cm", right: "1cm", bottom: "1cm", left: "1cm" },
+    displayHeaderFooter: true,
+    headerTemplate: header,
+    footerTemplate: footer,
+  };
 
   let browser;
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "development") {
+    pdfProperties.path = `./pdf/${path}`;
+
+    // Ensure the directory exists
+    const dir = dirname(pdfProperties.path);
+    fs.mkdirSync(dir, { recursive: true });
+
+    browser = await puppeteer.launch();
+  } else {
     browser = await puppeteerCore.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath(),
       headless: chromium.headless,
     });
-  } else {
-    browser = await puppeteer.launch();
   }
+
   const page = await browser.newPage();
+  await page.setContent(html);
+  await page.emulateMediaType("print");
 
   try {
-    await page.setContent(htmlContent);
-    await page.emulateMediaType("print");
-    const pdfBuffer = await page.pdf({
-      // path: `./pdf/${orderId}.pdf`,
-      format: "A4",
-      printBackground: true,
-      margin: { top: "1cm", right: "1cm", bottom: "1cm", left: "1cm" },
-      displayHeaderFooter: true,
-      headerTemplate: header.default,
-      footerTemplate: footer.default,
-    });
+    const pdfBuffer = await page.pdf(pdfProperties);
 
-    const uploadParams = {
-      Bucket: "quick-opslag",
-      Key: `pdf/${orderId}.pdf`,
-      Body: pdfBuffer,
-      ContentType: "application/pdf",
-    };
+    if (process.env.NODE_ENV === "production") {
+      const uploadParams = {
+        Bucket: "quick-opslag",
+        Key: path,
+        Body: pdfBuffer,
+        ContentType: "application/pdf",
+      };
 
-    const upload = new Upload({
-      client: s3Client,
-      params: uploadParams,
-    });
+      const upload = new Upload({
+        client: s3Client,
+        params: uploadParams,
+      });
 
-    await upload.done();
+      await upload.done();
+    }
 
-    await browser.close();
     console.log("PDF file generated successfully");
+    res.json({
+      message: "PDF generated and uploaded successfully",
+      url: `https://quick-opslag.s3.amazonaws.com/${path}`,
+    });
   } catch (error) {
-    console.error("Error generating PDF", error);
-    res.status(500).json({ message: "Error generating PDF" });
-    return;
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ error: "Error generating PDF" });
+  } finally {
+    await browser.close();
   }
+};
 
-  res.json({
-    message: "PDF file generated successfully",
-    url: `https://quick-opslag.s3.amazonaws.com/pdf/${orderId}.pdf`,
-  });
+app.post("/invoice", async (req, res) => {
+  const data = req.body;
+  const html = contentInvoice(data);
+  const path = data.path;
+  await generatePdf(path, html, res);
 });
 
 app.listen(port, () => {
