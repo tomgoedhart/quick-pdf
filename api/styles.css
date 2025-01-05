@@ -1,3 +1,7 @@
+:root {
+  --border-color: #eee;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -19,10 +23,14 @@ h2 {
   font-size: 1em;
 }
 
+.align-right {
+  text-align: right !important;
+}
+
 .item {
   margin: 1cm 0;
   padding: 1cm 0;
-  border-top: 1px solid #ccc;
+  border-top: 1px solid var(--border-color);
   break-inside: avoid;
 }
 
@@ -42,7 +50,7 @@ h2 {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
   font-family: Helvetica, Arial, sans-serif;
   font-size: 12px;
 }
@@ -59,8 +67,8 @@ h2 {
   vertical-align: top;
 }
 
-.table tr:nth-child(odd) td {
-  border-top: 1px solid #eee;
+.table *:not(tfoot) tr:nth-child(odd) td {
+  border-top: 1px solid var(--border-color);
 }
 
 .table .item-specifications td {
@@ -70,6 +78,46 @@ h2 {
 .table .item-specifications table tr td {
   border: none !important;
   padding: 0 8px 0 0;
+}
+
+.table .sender {
+  border-right: 1px solid var(--border-color);
+  text-align: left !important;
+}
+
+.table .additional-notes {
+  border-right: 1px solid var(--border-color);
+  text-align: center;
+  font-weight: bold;
+}
+
+.table .additional-notes h3 {
+  margin: 0 auto 8px;
+  font-size: 1.5em;
+  max-width: 50%;
+}
+
+.table .additional-notes p {
+  margin: 0 auto;
+  max-width: 50%;
+}
+
+.table tfoot {
+  border-top: 1px solid var(--border-color);
+}
+
+.table tfoot td {
+  border: none;
+}
+
+.table tfoot td:not(.additional-notes) {
+  text-align: right;
+}
+
+.table tfoot .total {
+  font-weight: bold;
+  border: 1px solid var(--border-color);
+  background: #efefef;
 }
 
 .totals {

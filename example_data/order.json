@@ -2,7 +2,7 @@
   "type": "Order",
   "print": false,
   "printer": "kantoor",
-  "path": "Klanten/K/Kees Broersen/2025/Orders/P2500002/invoice.pdf",
+  "path": "/Klanten/K/Kees Broersen/2025/Orders/P2500002/order.pdf",
   "header": {
     "logo": "Logo text/image info",
     "company_info": {
@@ -31,10 +31,10 @@
     "reference_name": "Eugène Faas"
   },
   "customer": {
-    "name": "Customer name",
-    "address": "Street and number",
+    "name": "Ateco BV",
+    "address": "Westerspoor 5",
     "postal_code": "1234 AB",
-    "city": "City"
+    "city": "Wognum"
   },
   "header_labels": {
     "qty": "Aantal",
@@ -45,50 +45,123 @@
   },
   "items": [
     {
-      "name": "Product name",
-      "price_per_unit": "€XX,XX",
-      "quantity": "X",
-      "total": "€XX,XX",
-      "discount_percentage": "X%",
-      "discount_amount": "€XX,XX",
+      "name": "Tekstplaatje",
+      "price_per_unit": "€ 1,88",
+      "quantity": 260,
+      "total": "€ 488,80",
+      "discount_percentage": "0%",
+      "discount_amount": "€ 0,00",
       "specifications": {
-        "technique": "Technique type",
-        "material": "Material type",
+        "technique": "Graveren",
+        "material": "Multiply 1,6mm",
         "format": {
-          "width": "XXX mm",
-          "height": "XXX mm"
+          "width": "55 mm",
+          "height": "20 mm"
         },
-        "self_adhesive": "Yes/No"
+        "self_adhesive": "Ja",
+        "lines": 1
+      }
+    },
+    {
+      "name": "Tekstplaatje",
+      "price_per_unit": "€ 1,88",
+      "quantity": 110,
+      "total": "€ 206,80",
+      "discount_percentage": "0%",
+      "discount_amount": "€ 0,00",
+      "specifications": {
+        "technique": "Graveren",
+        "material": "Multiply 1,6mm",
+        "format": {
+          "width": "47 mm",
+          "height": "15 mm"
+        },
+        "self_adhesive": "Ja",
+        "lines": 1
+      }
+    },
+    {
+      "name": "Tekstplaatje",
+      "price_per_unit": "€ 3,10",
+      "quantity": 40,
+      "total": "€ 124,00",
+      "discount_percentage": "0%",
+      "discount_amount": "€ 0,00",
+      "specifications": {
+        "technique": "Graveren",
+        "material": "Multiply 1,6mm",
+        "format": {
+          "width": "73 mm",
+          "height": "22 mm"
+        },
+        "self_adhesive": "Ja",
+        "lines": 2
+      }
+    },
+    {
+      "name": "Tekstplaatje",
+      "price_per_unit": "€ 2,56",
+      "quantity": 1,
+      "total": "€ 2,56",
+      "discount_percentage": "0%",
+      "discount_amount": "€ 0,00",
+      "specifications": {
+        "technique": "Graveren",
+        "material": "Multiply 1,6mm",
+        "format": {
+          "width": "73 mm",
+          "height": "22 mm"
+        },
+        "self_adhesive": "Ja",
+        "lines": 1
+      }
+    },
+    {
+      "name": "Tekstplaatje",
+      "price_per_unit": "€ 3,46",
+      "quantity": 6,
+      "total": "€ 20,76",
+      "discount_percentage": "0%",
+      "discount_amount": "€ 0,00",
+      "specifications": {
+        "technique": "Graveren",
+        "material": "Multiply 1,6mm",
+        "format": {
+          "width": "88 mm",
+          "height": "24 mm"
+        },
+        "self_adhesive": "Ja",
+        "lines": 2
       }
     }
   ],
   "totals": {
     "subtotal": {
-      "cost": "€XX,XX",
+      "cost": "€ 1.129,44",
       "label": "Subtotaal"
     },
     "discount": {
-      "cost": "€XX,XX",
+      "cost": "€ 0",
       "label": "Korting"
     },
     "small_order_fee": {
-      "cost": "€XX,XX",
+      "cost": "€ 0",
       "label": "Kleinorderkosten"
     },
     "shipping": {
-      "cost": "€XX,XX",
+      "cost": "€ 5,00",
       "method": "Post NL",
       "label": "Verzendkosten"
     },
     "total": {
-      "cost": "€XX,XX",
+      "cost": "€ 1345,99",
       "label": "Totaal (Excl. BTW)"
     }
   },
   "footer": {
     "footer_header": "Ingeschreven K.v.K Hoorn nr. 360.38.415.",
     "footer_body": "Op al onze offertes, op alle opdrachten aan ons en op alle met ons gesloten overeenkomsten zijn toepasselijk de METAALUNIEVOORWAARDEN. De leveringsvoorwaarden worden u, indien gewenst, kostenloos toegezonden.",
-    "additional_note_header": "Any additional information",
+    "additional_note_header": "LET OP! Dit is geen factuur!",
     "additional_notes": "Bij opdrachten onder de 10 euro, worden er 5 euro kleinorderkosten in rekening gebracht.",
     "quote_expiry": "Deze offerte vervalt op 09-05-2019",
     "quote_staff": "Deze is u aangeboden door Maarten"

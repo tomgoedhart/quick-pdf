@@ -44,9 +44,9 @@ const invoiceHtml = (data) => `
           <tr>
             <th>${data.header_labels.qty}</th>
             <th>${data.header_labels.item}</th>
-            <th>${data.header_labels.price_per_unit}</th>
-            <th>${data.header_labels.discount}</th>
-            <th>${data.header_labels.price}</th>
+            <th class="align-right">${data.header_labels.price_per_unit}</th>
+            <th class="align-right">${data.header_labels.discount}</th>
+            <th class="align-right">${data.header_labels.price}</th>
           </tr>
         </thead>
         <tbody>
@@ -56,9 +56,9 @@ const invoiceHtml = (data) => `
             <tr class="item-info">
               <td rowspan="2">${item.quantity}</td>
               <td><strong>${item.name}</strong></td>
-              <td rowspan="2">${item.price_per_unit}</td>
-              <td rowspan="2">${item.discount_percentage} <small>(${item.discount_amount})</small></td>
-              <td rowspan="2">${item.total}</td>
+              <td rowspan="2" class="align-right">${item.price_per_unit}</td>
+              <td rowspan="2" class="align-right">${item.discount_percentage} <small>(${item.discount_amount})</small></td>
+              <td rowspan="2" class="align-right">${item.total}</td>
             </tr>
             <tr class="item-specifications">
               <td>
@@ -89,32 +89,39 @@ const invoiceHtml = (data) => `
           `
             )
             .join("")}
+          <tfoot>
+            <tr>
+              <td colspan="2" rowspan="1" class="sender">
+                <strong>Verzender</strong> ${data.totals.shipping.method}
+              </td>
+              <td>${data.totals.subtotal.label}</td>
+              <td colspan="2">${data.totals.subtotal.cost}</td>
+            </tr>
+            <tr>
+              <td colspan="2" rowspan="5" class="additional-notes">
+                <h3>${data.footer.additional_note_header}</h3>
+                <p>${data.footer.additional_notes}</p>
+              </td>
+            </tr>
+            <tr>
+              <td>${data.totals.discount.label}</td>
+              <td colspan="2">${data.totals.discount.cost}</td>
+            </tr>
+            <tr>
+              <td>${data.totals.small_order_fee.label}</td>
+              <td colspan="2">${data.totals.small_order_fee.cost}</td>
+            </tr>
+            <tr>
+              <td>${data.totals.shipping.label}</td>
+              <td colspan="2">${data.totals.shipping.cost}</td>
+            </tr>
+            <tr class="total">
+              <td>${data.totals.total.label}</td>
+              <td colspan="2">${data.totals.total.cost}</td>
+            </tr>
+          </tfoot>
         </tbody>
       </table>
-
-      <!-- Totals -->
-      <div class="totals">
-        <p><strong>${data.totals.subtotal.label}:</strong> ${
-  data.totals.subtotal.cost
-}</p>
-        <p><strong>${data.totals.discount.label}:</strong> ${
-  data.totals.discount.cost
-}</p>
-        <p><strong>${data.totals.small_order_fee.label}:</strong> ${
-  data.totals.small_order_fee.cost
-}</p>
-        <p><strong>${data.totals.shipping.label}:</strong> ${
-  data.totals.shipping.cost
-} (${data.totals.shipping.method})</p>
-        <p><strong>${data.totals.total.label}:</strong> ${
-  data.totals.total.cost
-}</p>
-      </div>
-
-      <!-- Footer -->
-      <footer>
-        <p class="footer-note">${data.footer.additional_notes}</p>
-      </footer>
     </body>
   </html>
 `;
