@@ -25,6 +25,7 @@ h2 {
 
 .align-right {
   text-align: right !important;
+  white-space: nowrap;
 }
 
 .item {
@@ -46,11 +47,13 @@ h2 {
   flex: 1;
 }
 
+.customer-info {
+  padding-top: 17px;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
   font-family: Helvetica, Arial, sans-serif;
   font-size: 12px;
 }
@@ -69,6 +72,10 @@ h2 {
 
 .table *:not(tfoot) tr:nth-child(odd) td {
   border-top: 1px solid var(--border-color);
+}
+
+.table .item-info td:nth-child(2) {
+  padding: 8px 8px 4px;
 }
 
 .table .item-specifications td {
@@ -103,21 +110,23 @@ h2 {
 }
 
 .table tfoot {
+  display: table-row-group;
   border-top: 1px solid var(--border-color);
 }
 
-.table tfoot td {
+.table tfoot td,
+.table tfoot tr {
   border: none;
 }
 
 .table tfoot td:not(.additional-notes) {
   text-align: right;
+  white-space: nowrap;
 }
 
 .table tfoot .total {
   font-weight: bold;
-  border: 1px solid var(--border-color);
-  background: #efefef;
+  background: var(--border-color);
 }
 
 .totals {
@@ -134,5 +143,5 @@ h2 {
 }
 
 @page {
-  padding: 4cm 0;
+  padding: 4cm 0 1.5cm;
 }

@@ -6,7 +6,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
 
-const invoiceHtml = (data) => `
+const orderHTML = (data) => {
+  const hasDiscount = data.items.some(
+    (item) => !item.discount_amount.replace("€", "").trim().startsWith("0")
+  );
+
+  const hasSmallOrderFee = !data.totals.small_order_fee.cost
+    .replace("€", "")
+    .trim()
+    .startsWith("0");
+
+  return `
   <!DOCTYPE html>
   <html lang="en">
     <head>
@@ -45,7 +55,11 @@ const invoiceHtml = (data) => `
             <th>${data.header_labels.qty}</th>
             <th>${data.header_labels.item}</th>
             <th class="align-right">${data.header_labels.price_per_unit}</th>
-            <th class="align-right">${data.header_labels.discount}</th>
+            ${
+              hasDiscount
+                ? `<th class="align-right">${data.header_labels.discount}</th>`
+                : ``
+            }
             <th class="align-right">${data.header_labels.price}</th>
           </tr>
         </thead>
@@ -57,7 +71,11 @@ const invoiceHtml = (data) => `
               <td rowspan="2">${item.quantity}</td>
               <td><strong>${item.name}</strong></td>
               <td rowspan="2" class="align-right">${item.price_per_unit}</td>
-              <td rowspan="2" class="align-right">${item.discount_percentage} <small>(${item.discount_amount})</small></td>
+              ${
+                hasDiscount
+                  ? `<td rowspan="2" class="align-right">${item.discount_percentage} <small>(${item.discount_amount})</small></td>`
+                  : ``
+              }
               <td rowspan="2" class="align-right">${item.total}</td>
             </tr>
             <tr class="item-specifications">
@@ -73,7 +91,9 @@ const invoiceHtml = (data) => `
                   </tr>
                   <tr>
                     <td>Formaat</td>
-                    <td>: ${item.specifications.format.width} x ${item.specifications.format.height} mm</td>
+                    <td>: ${item.specifications.format.width} x ${
+                item.specifications.format.height
+              } mm</td>
                   </tr>
                   <tr>
                     <td>Aantal regels</td>
@@ -91,33 +111,49 @@ const invoiceHtml = (data) => `
             .join("")}
           <tfoot>
             <tr>
-              <td colspan="2" rowspan="1" class="sender">
+              <td colspan="${
+                hasDiscount ? "3" : "2"
+              }" rowspan="1" class="sender">
                 <strong>Verzender</strong> ${data.totals.shipping.method}
               </td>
               <td>${data.totals.subtotal.label}</td>
-              <td colspan="2">${data.totals.subtotal.cost}</td>
+              <td>${data.totals.subtotal.cost}</td>
             </tr>
             <tr>
-              <td colspan="2" rowspan="5" class="additional-notes">
+              <td colspan="${
+                hasDiscount ? "3" : "2"
+              }" rowspan="5" class="additional-notes">
                 <h3>${data.footer.additional_note_header}</h3>
                 <p>${data.footer.additional_notes}</p>
               </td>
             </tr>
-            <tr>
-              <td>${data.totals.discount.label}</td>
-              <td colspan="2">${data.totals.discount.cost}</td>
-            </tr>
-            <tr>
-              <td>${data.totals.small_order_fee.label}</td>
-              <td colspan="2">${data.totals.small_order_fee.cost}</td>
-            </tr>
+            ${
+              hasDiscount
+                ? `
+              <tr>
+                <td>${data.totals.discount.label}</td>
+                <td>${data.totals.discount.cost}</td>
+              </tr>
+            `
+                : ""
+            }
+            ${
+              hasSmallOrderFee
+                ? `
+              <tr>
+                <td>${data.totals.small_order_fee.label}</td>
+                <td>${data.totals.small_order_fee.cost}</td>
+              </tr>
+            `
+                : ""
+            }
             <tr>
               <td>${data.totals.shipping.label}</td>
-              <td colspan="2">${data.totals.shipping.cost}</td>
+              <td>${data.totals.shipping.cost}</td>
             </tr>
             <tr class="total">
               <td>${data.totals.total.label}</td>
-              <td colspan="2">${data.totals.total.cost}</td>
+              <td>${data.totals.total.cost}</td>
             </tr>
           </tfoot>
         </tbody>
@@ -125,5 +161,6 @@ const invoiceHtml = (data) => `
     </body>
   </html>
 `;
+};
 
-export default invoiceHtml;
+export default orderHTML;
