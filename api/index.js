@@ -13,6 +13,7 @@ import invoiceHeader from "./invoiceHeader.js";
 import invoiceFooter from "./invoiceFooter.js";
 import invoiceHtml from "./invoice.js";
 import orderHtml from "./order.js";
+import quoteHtml from "./quote.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -147,6 +148,22 @@ app.post("/order", async (req, res) => {
     res
       .status(400)
       .json({ error: "Error processing order", message: error.message });
+  }
+});
+
+app.post("/quote", async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data) {
+      throw new Error("No data provided");
+    }
+    const html = quoteHtml(data);
+    await generatePdf(data, html, res);
+  } catch (error) {
+    console.error("Error processing quote:", error);
+    res
+      .status(400)
+      .json({ error: "Error processing quote", message: error.message });
   }
 });
 
