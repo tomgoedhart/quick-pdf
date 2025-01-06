@@ -11,7 +11,7 @@ const orderHTML = (data) => {
     (item) => !item.discount_amount.replace("€", "").trim().startsWith("0")
   );
 
-  const hasSmallOrderFee = !data.totals.small_order_fee.cost
+  const hasSmallOrderFee = !data.totals.small_order_fee.cost?
     .replace("€", "")
     .trim()
     .startsWith("0");

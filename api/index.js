@@ -70,7 +70,7 @@ const generatePdf = async (data, html, res) => {
   // Generate HTML for development
   if (process.env.NODE_ENV === "development") {
     try {
-      fs.writeFileSync(pdfProperties.path.replace(".pdf", ".html"), html);
+      fs.writeFileSync(pdfProperties.path?.replace(".pdf", ".html"), html);
       console.log("HTML file generated successfully");
     } catch (error) {
       console.error("Error generating HTML:", error);
