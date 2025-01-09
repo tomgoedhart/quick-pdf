@@ -15,6 +15,8 @@ import invoiceHtml from "./invoice.js";
 import orderHtml from "./order.js";
 import quoteHtml from "./quote.js";
 
+import s3 from "./s3.js";
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -164,6 +166,21 @@ app.post("/quote", async (req, res) => {
     res
       .status(400)
       .json({ error: "Error processing quote", message: error.message });
+  }
+});
+
+app.post("/move-folder", async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data) {
+      throw new Error("No data provided");
+    }
+    await s3(req, res);
+  } catch (error) {
+    console.error("Error processing s3:", error);
+    res
+      .status(400)
+      .json({ error: "Error processing s3", message: error.message });
   }
 });
 
