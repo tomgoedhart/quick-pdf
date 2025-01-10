@@ -14,6 +14,8 @@ import invoiceFooter from "./invoiceFooter.js";
 import invoiceHtml from "./invoice.js";
 import orderHtml from "./order.js";
 import quoteHtml from "./quote.js";
+import addressStickerHtml from "./addressSticker.js";
+import postStickerHtml from "./postSticker.js";
 
 import s3 from "./s3.js";
 
@@ -22,67 +24,97 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const generatePdf = async (data, html, res) => {
+const generatePdf = async (data, html, size, isLastPdf = false) => {
   const path = data.path;
-  const pdfProperties = {
-    format: "A4",
+
+  let pdfProperties = {
     printBackground: true,
-    margin: { top: "1cm", right: "1cm", bottom: "1cm", left: "1cm" },
-    displayHeaderFooter: true,
-    headerTemplate:
-      data.type === "Factuur" ? invoiceHeader(data) : header(data),
-    footerTemplate:
-      data.type === "Factuur" ? invoiceFooter(data) : footer(data),
   };
 
-  let browser;
-  if (process.env.NODE_ENV === "development") {
-    pdfProperties.path = `./pdf/${path}`;
+  const A4Properties = {
+    margin: { top: "1cm", right: "1cm", bottom: "1cm", left: "1cm" },
+    format: "A4",
+    displayHeaderFooter: true,
+  };
 
-    // Ensure the directory exists
-    const dir = dirname(pdfProperties.path);
-    fs.mkdirSync(dir, { recursive: true });
-
-    browser = await puppeteer.launch();
+  if (data.type === "Sticker") {
+    pdfProperties.width = size.width;
+    pdfProperties.height = size.height;
+    pdfProperties.margin = {
+      top: "0",
+      right: "0",
+      bottom: "0",
+      left: "0",
+    };
+  } else if (data.type === "Factuur") {
+    pdfProperties = {
+      ...pdfProperties,
+      ...A4Properties,
+    };
+    pdfProperties.headerTemplate = invoiceHeader(data);
+    pdfProperties.footerTemplate = invoiceFooter(data);
   } else {
-    browser = await puppeteerCore.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-    });
+    pdfProperties = {
+      ...pdfProperties,
+      ...A4Properties,
+    };
+    pdfProperties.headerTemplate = header(data);
+    pdfProperties.footerTemplate = footer(data);
   }
 
+  let browser;
   let pdfBuffer;
-
   try {
+    if (process.env.NODE_ENV === "development") {
+      pdfProperties.path = `./pdf/${
+        path.startsWith("/") ? path.slice(1) : path
+      }`;
+
+      // Ensure the directory exists
+      const dir = dirname(pdfProperties.path);
+      try {
+        fs.mkdirSync(dir, { recursive: true });
+      } catch (mkdirError) {
+        // Ignore error if directory already exists
+        if (mkdirError.code !== "EEXIST") {
+          console.error("Error creating directory:", mkdirError);
+          throw mkdirError;
+        }
+      }
+
+      browser = await puppeteer.launch();
+    } else {
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+    }
+
     const page = await browser.newPage();
     await page.setContent(html);
     await page.emulateMediaType("print");
 
     pdfBuffer = await page.pdf(pdfProperties);
-    console.log("PDF file generated successfully");
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    res
-      .status(500)
-      .json({ error: "Error generating PDF", message: error.message });
-  }
+    console.log(" PDF file generated successfully");
 
-  // Generate HTML for development
-  if (process.env.NODE_ENV === "development") {
-    try {
-      fs.writeFileSync(pdfProperties.path?.replace(".pdf", ".html"), html);
-      console.log("HTML file generated successfully");
-    } catch (error) {
-      console.error("Error generating HTML:", error);
-      res
-        .status(500)
-        .json({ error: "Error generating HTML", message: error.message });
+    await browser.close();
+
+    // Generate HTML for development
+    if (process.env.NODE_ENV === "development") {
+      try {
+        fs.writeFileSync(pdfProperties.path?.replace(".pdf", ".html"), html, {
+          flag: "w",
+        });
+        console.log(" HTML file generated successfully");
+      } catch (error) {
+        console.error("Error generating HTML:", error);
+        throw error;
+      }
     }
-  }
 
-  try {
+    // Upload to S3
     if (process.env.NODE_ENV === "production") {
       const s3Client = new S3Client({
         region: process.env.NODE_AWS_REGION,
@@ -107,17 +139,14 @@ const generatePdf = async (data, html, res) => {
       await upload.done();
     }
 
-    res.json({
-      message: "PDF generated and uploaded successfully",
+    return {
+      path,
+      pdfBuffer,
       url: `https://quick-opslag.s3.amazonaws.com/${path}`,
-    });
+    };
   } catch (error) {
-    console.error("Error uploading PDF:", error);
-    res
-      .status(500)
-      .json({ error: "Error uploading PDF", message: error.message });
-  } finally {
-    await browser.close();
+    console.error("Error generating PDF:", error);
+    throw error;
   }
 };
 
@@ -128,7 +157,11 @@ app.post("/invoice", async (req, res) => {
       throw new Error("No data provided");
     }
     const html = invoiceHtml(data);
-    await generatePdf(data, html, res);
+    const pdf = await generatePdf(data, html);
+    res.json({
+      message: "PDF generated and uploaded successfully",
+      url: pdf.url,
+    });
   } catch (error) {
     console.error("Error processing invoice:", error);
     res
@@ -144,7 +177,11 @@ app.post("/order", async (req, res) => {
       throw new Error("No data provided");
     }
     const html = orderHtml(data);
-    await generatePdf(data, html, res);
+    const pdf = await generatePdf(data, html);
+    res.json({
+      message: "PDF generated and uploaded successfully",
+      url: pdf.url,
+    });
   } catch (error) {
     console.error("Error processing order:", error);
     res
@@ -160,12 +197,71 @@ app.post("/quote", async (req, res) => {
       throw new Error("No data provided");
     }
     const html = quoteHtml(data);
-    await generatePdf(data, html, res);
+    const pdf = await generatePdf(data, html);
+    res.json({
+      message: "PDF generated and uploaded successfully",
+      url: pdf.url,
+    });
   } catch (error) {
     console.error("Error processing quote:", error);
     res
       .status(400)
       .json({ error: "Error processing quote", message: error.message });
+  }
+});
+
+const handleAddressSticker = async (data, size) => {
+  const addressHtml = addressStickerHtml(data);
+  const addressData = {
+    ...data,
+    path: `${data.path}/address.pdf`,
+  };
+  return await generatePdf(addressData, addressHtml, size);
+};
+
+const handlePostSticker = async (data, size) => {
+  console.log("handlePostSticker", { data });
+  const postHtml = postStickerHtml(data);
+  const postData = {
+    ...data,
+    path: `${data.path}/post.pdf`,
+  };
+  return await generatePdf(postData, postHtml, size);
+};
+
+app.post("/sticker", async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data) {
+      throw new Error("No data provided");
+    }
+
+    const addressSize = {
+      width: 70,
+      height: 37,
+    };
+
+    const postSize = {
+      width: 150,
+      height: 102,
+    };
+
+    const [addressPdf, postPdf] = await Promise.all([
+      handleAddressSticker(data, addressSize),
+      handlePostSticker(data, postSize),
+    ]);
+
+    res.json({
+      message: "PDFs generated and uploaded successfully",
+      address: addressPdf.url,
+      post: postPdf.url,
+    });
+  } catch (error) {
+    console.error("Error processing address sticker:", error);
+    res.status(400).json({
+      error: "Error processing address sticker",
+      message: error.message,
+    });
   }
 });
 
@@ -185,5 +281,5 @@ app.post("/move-folder", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(` Server is running on http://localhost:${port}`);
 });

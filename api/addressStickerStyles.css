@@ -1,0 +1,31 @@
+:root {
+  --border-color: #eee;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Futura", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  print-color-adjust: exact;
+}
+
+h1 {
+  font-size: 14pt;
+  font-weight: bold;
+}
+
+p {
+  font-size: 12pt;
+}
+
+@page {
+  margin: 1cm;
+  size: 70mm 37mm;
+  background: #fff;
+  print-color-adjust: exact;
+}

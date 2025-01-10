@@ -1,22 +1,33 @@
-# My Node.js Project
+# Quick Graveer PDF API
 
-This is a simple Node.js project that demonstrates the structure and setup of a Node.js application.
+This project provides an API endpoint that generates PDF's.
+It also provides an endpoint to change folders on S3.
 
-## Table of Contents
+## Features
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+Generates PDF's for the following types:
+- order (pakbon)
+- invoice (Factuur)
+- quote (Offerte)
+- address sticker
+- post sticker
+
+## Endpoints
+
+The following endpoints are available:
+
+- `/api/invoice`
+- `/api/order`
+- `/api/quote`
+- `/api/sticker`
+- `/api/move-folder`
 
 ## Installation
 
 To get started with this project, clone the repository and install the dependencies:
 
 ```bash
-git clone <repository-url>
-cd my-nodejs-project
-npm install
+yarn install
 ```
 
 ## Usage
@@ -24,13 +35,18 @@ npm install
 To run the application, use the following command:
 
 ```bash
-node src/index.js
+yarn start
 ```
 
-## Contributing
+## Deployment
 
-Contributions are welcome! Please open an issue or submit a pull request.
+To deploy the application to a production environment, follow these steps:
 
-## License
+1. Commit your changes to the repository.
+2. Push the changes to the remote repository.
+3. That's it.
 
-This project is licensed under the MIT License.
+## Vercel
+
+This project is deployed on Vercel.
+https://vercel.com/qgraveers-projects/quickgraveer-pdf-api
