@@ -15,17 +15,18 @@ body {
 }
 
 h1 {
-  font-size: 14pt;
+  font-size: 11pt;
   font-weight: bold;
 }
 
 p {
-  font-size: 12pt;
+  font-size: 9pt;
 }
 
 @page {
-  margin: 1cm;
+  padding: 4mm;
   size: 70mm 37mm;
   background: #fff;
   print-color-adjust: exact;
+  border: 1px solid var(--border-color);
 }

@@ -24,8 +24,9 @@ p {
 }
 
 @page {
-  margin: 1cm;
+  padding: 1cm;
   size: 150mm 102mm;
   background: #fff;
   print-color-adjust: exact;
+  border: 1px solid var(--border-color);
 }

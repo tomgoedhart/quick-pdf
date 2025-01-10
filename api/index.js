@@ -220,7 +220,6 @@ const handleAddressSticker = async (data, size) => {
 };
 
 const handlePostSticker = async (data, size) => {
-  console.log("handlePostSticker", { data });
   const postHtml = postStickerHtml(data);
   const postData = {
     ...data,
