@@ -251,6 +251,8 @@ app.post("/sticker", async (req, res) => {
       throw new Error("No data provided");
     }
 
+    data.print = true;
+
     // Dymo Labelwriter 450
     const addressSize = {
       width: 88,
