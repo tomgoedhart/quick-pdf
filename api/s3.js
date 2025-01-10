@@ -17,7 +17,7 @@ const s3Client = new S3Client({
 // Authentication middleware
 const authenticate = (req) => {
   const apiKey = req.headers["x-api-key"];
-  if (!apiKey || apiKey !== process.env.API_KEY) {
+  if (!apiKey || apiKey !== process.env.NODE_API_S3_KEY) {
     throw new Error("Unauthorized");
   }
 };
