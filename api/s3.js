@@ -17,7 +17,7 @@ const s3Client = new S3Client({
 // Authentication middleware
 const authenticate = (req) => {
   const apiKey = req.headers["x-api-key"];
-  if (!apiKey || apiKey !== process.env.NODE_API_S3_KEY) {
+  if (!apiKey || apiKey !== process.env.API_KEY) {
     throw new Error("Unauthorized");
   }
 };
@@ -120,6 +120,22 @@ export default async function handler(req, res) {
     if (oldLocation.bucket !== newLocation.bucket) {
       return res.status(400).json({
         error: "Cross-bucket operations are not supported",
+      });
+    }
+
+    // Check if source prefix exists and has content
+    const listCommand = new ListObjectsV2Command({
+      Bucket: oldLocation.bucket,
+      Prefix: oldLocation.prefix,
+      MaxKeys: 1,
+    });
+
+    const listResult = await s3Client.send(listCommand);
+    console.log("List result:", listResult);
+
+    if (!listResult.Contents || listResult.Contents.length === 0) {
+      return res.status(404).json({
+        error: "Source folder does not exist or is empty",
       });
     }
 

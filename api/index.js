@@ -18,14 +18,15 @@ import addressStickerHtml from "./addressSticker.js";
 import postStickerHtml from "./postSticker.js";
 
 import s3 from "./s3.js";
+import printPDF from "./print.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const generatePdf = async (data, html, size, isLastPdf = false) => {
-  const path = data.path;
+const generatePdf = async (data, html, size) => {
+  const path = data.path.startsWith("/") ? data.path.slice(1) : data.path;
 
   let pdfProperties = {
     printBackground: true,
@@ -64,11 +65,10 @@ const generatePdf = async (data, html, size, isLastPdf = false) => {
 
   let browser;
   let pdfBuffer;
+
   try {
     if (process.env.NODE_ENV === "development") {
-      pdfProperties.path = `./pdf/${
-        path.startsWith("/") ? path.slice(1) : path
-      }`;
+      pdfProperties.path = `./pdf/${path}`;
 
       // Ensure the directory exists
       const dir = dirname(pdfProperties.path);
@@ -115,7 +115,8 @@ const generatePdf = async (data, html, size, isLastPdf = false) => {
     }
 
     // Upload to S3
-    if (process.env.NODE_ENV === "production") {
+    let s3Url;
+    if (process.env.NODE_DISABLE_S3 !== "true") {
       const s3Client = new S3Client({
         region: process.env.NODE_AWS_REGION,
         credentials: {
@@ -136,13 +137,25 @@ const generatePdf = async (data, html, size, isLastPdf = false) => {
         params: uploadParams,
       });
 
-      await upload.done();
+      const result = await upload.done();
+      s3Url = `s3://${result.Bucket}/${result.Key}`;
+
+      console.log("⬆ PDF file uploaded to S3 successfully", s3Url);
+
+      if (data.print) {
+        try {
+          await printPDF(s3Url, data.printer);
+        } catch (error) {
+          console.error("Error printing PDF:", error);
+          throw error;
+        }
+      }
     }
 
     return {
       path,
       pdfBuffer,
-      url: `https://quick-opslag.s3.amazonaws.com/${path}`,
+      url: s3Url,
     };
   } catch (error) {
     console.error("Error generating PDF:", error);
@@ -160,6 +173,7 @@ app.post("/invoice", async (req, res) => {
     const pdf = await generatePdf(data, html);
     res.json({
       message: "PDF generated and uploaded successfully",
+      printed: data.print,
       url: pdf.url,
     });
   } catch (error) {
@@ -180,6 +194,7 @@ app.post("/order", async (req, res) => {
     const pdf = await generatePdf(data, html);
     res.json({
       message: "PDF generated and uploaded successfully",
+      printed: data.print,
       url: pdf.url,
     });
   } catch (error) {
@@ -200,6 +215,7 @@ app.post("/quote", async (req, res) => {
     const pdf = await generatePdf(data, html);
     res.json({
       message: "PDF generated and uploaded successfully",
+      printed: data.print,
       url: pdf.url,
     });
   } catch (error) {
@@ -235,9 +251,10 @@ app.post("/sticker", async (req, res) => {
       throw new Error("No data provided");
     }
 
+    // Dymo Labelwriter 450
     const addressSize = {
-      width: 70,
-      height: 37,
+      width: 88,
+      height: 36,
     };
 
     const postSize = {
@@ -252,6 +269,7 @@ app.post("/sticker", async (req, res) => {
 
     res.json({
       message: "PDFs generated and uploaded successfully",
+      printed: data.print,
       address: addressPdf.url,
       post: postPdf.url,
     });
