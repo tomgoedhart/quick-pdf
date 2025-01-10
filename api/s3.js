@@ -68,7 +68,7 @@ function parseS3Url(url) {
     let bucket;
     let prefix;
 
-    if (url.startsWith("https://")) {
+    if (url?.startsWith("https://")) {
       // Handle HTTPS URL format (https://bucket-name.s3.region.amazonaws.com/path)
       const urlObj = new URL(url);
       const hostname = urlObj.hostname;

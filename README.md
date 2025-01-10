@@ -50,3 +50,18 @@ To deploy the application to a production environment, follow these steps:
 
 This project is deployed on Vercel.
 https://vercel.com/qgraveers-projects/quickgraveer-pdf-api
+
+## Server
+
+Deployed on local server at Quick.
+Using Gunicorn to expose on network
+Using Ngrok to expose on internet (using Kees's free account)
+
+So:
+• The call is being made to vercel (eg https://quickgraveer-pdf-api.vercel.app/quote)
+• Script on Vercel generates the PDF and uploads it to S3
+• Script on Vercel calls the printer API on: https://cb1d-84-246-3-220.ngrok-free.app/print
+• Ngrok puts call through to service on local server at Quick (eg http://0.0.0.0:6789/print)
+• Local service prints PDF to printer
+
+See printer list at https://cb1d-84-246-3-220.ngrok-free.app/printers

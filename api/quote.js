@@ -8,13 +8,13 @@ const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
 
 const orderHTML = (data) => {
   const hasDiscount = data.items.some(
-    (item) => !item.discount_amount.replace("€", "").trim().startsWith("0")
+    (item) => !item.discount_amount.replace("€", "").trim()?.startsWith("0")
   );
 
   const hasSmallOrderFee = !data.totals.small_order_fee.cost
     ?.replace("€", "")
     .trim()
-    .startsWith("0");
+    ?.startsWith("0");
 
   return `
   <!DOCTYPE html>

@@ -26,7 +26,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 const generatePdf = async (data, html, size) => {
-  const path = data.path.startsWith("/") ? data.path.slice(1) : data.path;
+  const path = data.path?.startsWith("/") ? data.path.slice(1) : data.path;
 
   let pdfProperties = {
     printBackground: true,
