@@ -9,8 +9,8 @@ import {
 const s3Client = new S3Client({
   region: process.env.NODE_AWS_REGION,
   credentials: {
-    accessKeyId: process.env.NODE_AWS_ACCESS_S3_KEY_ID,
-    secretAccessKey: process.env.NODE_AWS_SECRET_S3_ACCESS_KEY,
+    accessKeyId: process.env.NODE_AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.NODE_AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -76,14 +76,14 @@ function parseS3Url(url) {
       // Extract bucket name from hostname
       bucket = hostname.split(".s3.")[0];
 
-      // Remove leading slash from pathname
-      prefix = urlObj.pathname.replace(/^\//, "");
+      // Remove leading slash and decode URL components
+      prefix = decodeURIComponent(urlObj.pathname.replace(/^\//, ""));
     } else {
       // Handle s3:// format
       const cleanUrl = url.replace("s3://", "");
       const parts = cleanUrl.split("/");
       bucket = parts[0];
-      prefix = parts.slice(1).join("/");
+      prefix = decodeURIComponent(parts.slice(1).join("/"));
     }
 
     // Validate bucket name according to S3 naming rules
@@ -116,6 +116,13 @@ export default async function handler(req, res) {
     const oldLocation = parseS3Url(oldUrl);
     const newLocation = parseS3Url(newUrl);
 
+    console.log("Attempting to move:", {
+      oldLocation,
+      newLocation,
+      fullOldUrl: `${oldLocation.bucket}/${oldLocation.prefix}`,
+      fullNewUrl: `${newLocation.bucket}/${newLocation.prefix}`,
+    });
+
     // Verify both operations are on the same bucket
     if (oldLocation.bucket !== newLocation.bucket) {
       return res.status(400).json({
@@ -130,8 +137,9 @@ export default async function handler(req, res) {
       MaxKeys: 1,
     });
 
+    console.log("List command params:", listCommand.input);
     const listResult = await s3Client.send(listCommand);
-    console.log("List result:", listResult);
+    console.log("List result:", JSON.stringify(listResult, null, 2));
 
     if (!listResult.Contents || listResult.Contents.length === 0) {
       return res.status(404).json({
