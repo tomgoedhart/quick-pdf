@@ -64,4 +64,12 @@ So:
 • Ngrok puts call through to service on local server at Quick (eg http://0.0.0.0:6789/print)
 • Local service prints PDF to printer
 
-See printer list at https://cb1d-84-246-3-220.ngrok-free.app/printers
+See printer list at https:/clam-guiding-gelding.ngrok-free.app/printers
+
+# Ngrok
+ngrok http --url=clam-guiding-gelding.ngrok-free.app 6789
+
+# To get the print service running on the server at Quick
+source venv/bin/activate
+gunicorn --bind 0.0.0.0:6789 app:app &
+ngrok http --url=clam-guiding-gelding.ngrok-free.app http://0.0.0.0:6789 &

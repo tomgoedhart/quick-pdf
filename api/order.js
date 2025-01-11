@@ -97,7 +97,7 @@ const orderHTML = (data) => {
                   </tr>
                   <tr>
                     <td>Aantal regels</td>
-                    <td>: ${item.specifications.rules}</td>
+                    <td>: ${item.specifications.lines}</td>
                   </tr>
                   <tr>
                     <td>Zelfklevend</td>
