@@ -47,6 +47,21 @@ const footerTemplate = (data) => `
         right: 1cm;
         color: #333;
       }
+
+      ${
+        !data.digital
+          ? `
+          footer div, 
+          footer img {
+            display: none;
+          }
+
+          footer {
+            background: none !important;
+          }
+        `
+          : ""
+      }
     </style>
     <img src="data:image/svg+xml;base64,${logo}" alt="Metaal uni" />
     <div>

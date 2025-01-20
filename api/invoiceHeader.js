@@ -63,6 +63,19 @@ const headerTemplate = (data) => `
           font-weight: 200;
           color: #fff;
         }
+
+        ${
+          !data.digital
+            ? `
+            header:before,
+            header:after,
+            header p,
+            header img {
+              display: none;
+            }
+          `
+            : ""
+        }
       </style>
       <img src="data:image/svg+xml;base64,${logo}" alt="Quick logo" />
       <p>

@@ -175,8 +175,24 @@ app.post("/invoice", async (req, res) => {
     if (!data) {
       throw new Error("No data provided");
     }
-    const html = invoiceHtml(data);
-    const pdf = await generatePdf(data, html);
+
+    // Create digital invoice - not to be printed
+    const digitalHtml = invoiceHtml({ ...data, digital: true, print: false });
+    const digitalPdf = await generatePdf(
+      { ...data, digital: true, print: false },
+      digitalHtml
+    );
+
+    // Create printed invoice
+    const html = invoiceHtml({ ...data, digital: false });
+    const pdf = await generatePdf(
+      {
+        ...data,
+        digital: false,
+        path: `${data.path?.replace(".pdf", "")}_print.pdf`,
+      },
+      html
+    );
     res.json({
       message: "PDF generated and uploaded successfully",
       printed: data.print,

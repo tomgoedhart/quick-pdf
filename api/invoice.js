@@ -51,7 +51,7 @@ const invoiceHtml = (data) => {
     </style>
   </head>
   <body class="invoice">
-    <div class="background-image"></div>
+    ${!data.digital ? "" : `<div class="background-image"></div>`}
 
     <div class="order-header">
       <!-- Order Information -->
