@@ -8,8 +8,10 @@ const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
 const logo = fs.readFileSync(join(__dirname, "logoGrey.svg"), "base64");
 
 const invoiceHtml = (data) => {
-  const hasDiscount = data.items.some(
-    (item) => !item.discount?.replace("€", "").trim()?.startsWith("0")
+  const hasDiscount = data.items.some((item) =>
+    item.items.some(
+      (subItem) => !subItem.discount?.replace("€", "").trim()?.startsWith("0")
+    )
   );
 
   const hasSmallOrderFee =
@@ -123,34 +125,44 @@ const invoiceHtml = (data) => {
           .join("")}
         <tfoot>
           <tr>
-            <td></td>
-            <td colspan="${hasDiscount ? "4" : "2"}" rowspan="1" class="sender">
+            <td rowspan="5"></td>
+            <td rowspan="5"colspan="${
+              hasDiscount ? "4" : "3"
+            }" class="invoice-payment-info">
+             <h3>${data.footer.additional_note_header}</h3>
+              ${
+                data.footer.additional_notes
+                  ? "<p>" + data.footer.additional_notes + "</p>"
+                  : ""
+              }
+              <table>
+                <tr>
+                    <td>Bank:</td>
+                    <td>${data.footer.bank_details}</td>
+                    <td>BTW:</td>
+                    <td>${data.footer.btw}</td>
+                </tr>
+                <tr>
+                    <td>Rek nr.:</td>
+                    <td>${data.footer.bank_account}</td>
+                    <td>IBAN:</td>
+                    <td>${data.footer.iban}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td>BIC:</td>
+                    <td>${data.footer.bic}</td>
+                </tr>
+              </table>
             </td>
             <td>${data.totals.subtotal.label}</td>
             <td>${data.totals.subtotal.cost}</td>
-          </tr>
-          <tr>
-            <td rowspan="5"></td>
-            <td colspan="${
-              hasDiscount ? "4" : "2"
-            }" rowspan="5" class="additional-notes">
-              <h3>${data.footer.additional_note_header}</h3>
-              <p>${
-                data.footer.additional_notes ? data.footer.additional_notes : ""
-              }
-                ${data.footer.bank_details}
-                ${data.footer.bank_account}
-                ${data.footer.btw}
-                ${data.footer.iban}
-                ${data.footer.bic}
-              </p>
-            </td>
           </tr>
           ${
             hasDiscount
               ? `
             <tr>
-
               <td>${data.totals.discount?.label}</td>
               <td>${data.totals.discount?.cost}</td>
             </tr>
@@ -175,6 +187,10 @@ const invoiceHtml = (data) => {
           </tr>`
               : ""
           }
+          <tr>
+            <td>${data.totals.vat?.label}</td>
+            <td>${data.totals.vat.cost}</td>
+          </tr>
           <tr class="total">
             <td>${data.totals.total?.label}</td>
             <td>${data.totals.total.cost}</td>

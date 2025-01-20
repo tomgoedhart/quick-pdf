@@ -170,18 +170,32 @@ h2 {
   margin-bottom: -8px;
 }
 
-.invoice .table .additional-notes {
+.invoice h3 + p {
+  margin-top: 4px;
+}
+
+.invoice .table .invoice-payment-info {
+  border-right: 1px solid var(--border-color);
   text-align: left;
 }
 
-.invoice .table .additional-notes * {
-  margin: 0;
-  max-width: 100%;
+.invoice .table .invoice-payment-info table {
+  margin-top: 0.3cm;
 }
 
-.invoice .table .additional-notes p {
-  white-space: pre-line;
+.invoice .table .invoice-payment-info td {
+  border: none;
+  padding: 1px 1cm 0 0;
   font-weight: normal;
+  text-align: left;
+}
+
+.invoice .table .invoice-payment-info td:nth-child(odd) {
+  padding-right: 0.2cm;
+}
+
+.invoice .table .invoice-payment-info td:first-child {
+  padding-left: 0;
 }
 
 @page {
