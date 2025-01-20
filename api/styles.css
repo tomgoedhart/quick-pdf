@@ -129,6 +129,11 @@ h2 {
   background: var(--border-color);
 }
 
+.table--invoice .item-specifications td {
+  border-top: 1px solid var(--border-color);
+  padding: 8px;
+}
+
 .totals {
   margin-top: 20px;
 }
@@ -140,6 +145,43 @@ h2 {
 .footer-note {
   font-size: 0.9em;
   color: #555;
+}
+
+.invoice {
+  padding: 0 1cm;
+}
+
+.invoice .order-header {
+  margin-top: 0.35cm;
+  margin-bottom: 1cm;
+  padding: 0 1cm 0 4.5cm;
+}
+
+.invoice .order-info {
+  margin: 0;
+}
+
+.invoice .customer-info {
+  padding-top: 0.55cm;
+}
+
+.invoice h1 {
+  line-height: 156%;
+  margin-bottom: -8px;
+}
+
+.invoice .table .additional-notes {
+  text-align: left;
+}
+
+.invoice .table .additional-notes * {
+  margin: 0;
+  max-width: 100%;
+}
+
+.invoice .table .additional-notes p {
+  white-space: pre-line;
+  font-weight: normal;
 }
 
 @page {
