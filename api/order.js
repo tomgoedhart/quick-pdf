@@ -43,7 +43,7 @@ const orderHTML = (data) => {
           <h2>${data.customer.name}</h2>
           <p>
             ${data.customer.address}<br/>
-            ${data.customer.address_2}<br/>
+            ${data.customer.address_2 ? data.customer.address_2 + "<br/>" : ""}
             ${data.customer.postal_code} ${data.customer.city}
           </p>
         </div>
