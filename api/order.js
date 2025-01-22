@@ -90,12 +90,15 @@ const orderHTML = (data) => {
                     <td>Materiaal</td>
                     <td>: ${item.specifications.material}</td>
                   </tr>
-                  <tr>
-                    <td>Formaat</td>
-                    <td>: ${item.specifications.format.width} x ${
-                item.specifications.format.height
-              } mm</td>
-                  </tr>
+                    ${
+                      item.specifications.format?.width &&
+                      item.specifications.format?.height
+                        ? `<tr>
+                          <td>Formaat</td>
+                          <td>: ${item.specifications.format.width} x ${item.specifications.format.height}</td>
+                        </tr>`
+                        : ``
+                    }
                   <tr>
                     <td>Aantal regels</td>
                     <td>: ${item.specifications.lines}</td>

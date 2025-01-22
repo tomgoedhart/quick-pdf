@@ -25,6 +25,20 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
+const cleanData = (data) => {
+  if (!data) {
+    return;
+  }
+
+  const cleaned = JSON.parse(
+    JSON.stringify(data, (key, value) =>
+      value === Object(value) && Object.keys(value).length === 0 ? "" : value
+    )
+  );
+  console.log({ cleaned });
+  return cleaned;
+};
+
 const generatePdf = async (data, html, size) => {
   const path = data.path?.startsWith("/") ? data.path.slice(1) : data.path;
 
@@ -171,7 +185,7 @@ const generatePdf = async (data, html, size) => {
 
 app.post("/invoice", async (req, res) => {
   try {
-    const data = req.body;
+    const data = cleanData(req.body);
     if (!data) {
       throw new Error("No data provided");
     }
@@ -208,7 +222,7 @@ app.post("/invoice", async (req, res) => {
 
 app.post("/order", async (req, res) => {
   try {
-    const data = req.body;
+    const data = cleanData(req.body);
     if (!data) {
       throw new Error("No data provided");
     }
@@ -229,7 +243,7 @@ app.post("/order", async (req, res) => {
 
 app.post("/quote", async (req, res) => {
   try {
-    const data = req.body;
+    const data = cleanData(req.body);
     if (!data) {
       throw new Error("No data provided");
     }
@@ -268,7 +282,7 @@ const handlePostSticker = async (data, size) => {
 
 app.post("/sticker", async (req, res) => {
   try {
-    const data = req.body;
+    const data = cleanData(req.body);
     if (!data) {
       throw new Error("No data provided");
     }
@@ -308,7 +322,7 @@ app.post("/sticker", async (req, res) => {
 
 app.post("/move-folder", async (req, res) => {
   try {
-    const data = req.body;
+    const data = cleanData(req.body);
     if (!data) {
       throw new Error("No data provided");
     }
