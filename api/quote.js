@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
 
-const orderHTML = (data) => {
+const quoteHtml = (data) => {
   const hasDiscount = data.items.some(
     (item) => !item.discount_amount.replace("€", "").trim()?.startsWith("0")
   );
@@ -15,6 +15,9 @@ const orderHTML = (data) => {
     ?.replace("€", "")
     .trim()
     ?.startsWith("0");
+
+  const hidePrices = data.hidePrices;
+  const hideSizes = data.hideSizes;
 
   return `
   <!DOCTYPE html>
@@ -54,13 +57,19 @@ const orderHTML = (data) => {
           <tr>
             <th>${data.header_labels.qty}</th>
             <th>${data.header_labels.item}</th>
-            <th class="align-right">${data.header_labels.price_per_unit}</th>
             ${
-              hasDiscount
-                ? `<th class="align-right">${data.header_labels.discount}</th>`
-                : ``
+              hidePrices
+                ? ``
+                : `<th class="align-right">${
+                    data.header_labels.price_per_unit
+                  }</th>
+                ${
+                  hasDiscount
+                    ? `<th class="align-right">${data.header_labels.discount}</th>`
+                    : ``
+                }
+            <th class="align-right">${data.header_labels.price}</th>`
             }
-            <th class="align-right">${data.header_labels.price}</th>
           </tr>
         </thead>
         <tbody>
@@ -70,13 +79,19 @@ const orderHTML = (data) => {
             <tr class="item-info">
               <td rowspan="2">${item.quantity}</td>
               <td><strong>${item.name}</strong></td>
-              <td rowspan="2" class="align-right">${item.price_per_unit}</td>
+              ${
+                hidePrices
+                  ? ``
+                  : `<td rowspan="2" class="align-right">${
+                      item.price_per_unit
+                    }</td>
               ${
                 hasDiscount
                   ? `<td rowspan="2" class="align-right">${item.discount_percentage} <small>(${item.discount_amount})</small></td>`
                   : ``
               }
-              <td rowspan="2" class="align-right">${item.total}</td>
+              <td rowspan="2" class="align-right">${item.total}</td>`
+              }
             </tr>
             <tr class="item-specifications">
               <td>
@@ -89,12 +104,16 @@ const orderHTML = (data) => {
                     <td>Materiaal</td>
                     <td>: ${item.specifications.material}</td>
                   </tr>
-                  <tr>
-                    <td>Formaat</td>
-                    <td>: ${item.specifications.format.width} x ${
-                item.specifications.format.height
-              } mm</td>
-                  </tr>
+                    ${
+                      item.specifications.format?.width &&
+                      item.specifications.format?.height &&
+                      !hideSizes
+                        ? `<tr>
+                          <td>Formaat</td>
+                          <td>: ${item.specifications.format.width} x ${item.specifications.format.height}</td>
+                        </tr>`
+                        : ``
+                    }
                   <tr>
                     <td>Aantal regels</td>
                     <td>: ${item.specifications.lines}</td>
@@ -109,7 +128,10 @@ const orderHTML = (data) => {
           `
             )
             .join("")}
-          <tfoot>
+          ${
+            hidePrices
+              ? ""
+              : `<tfoot>
             <tr>
               <td colspan="${
                 hasDiscount ? "3" : "2"
@@ -157,7 +179,8 @@ const orderHTML = (data) => {
               <td>${data.totals.total.label}</td>
               <td>${data.totals.total.cost}</td>
             </tr>
-          </tfoot>
+          </tfoot> `
+          }
         </tbody>
       </table>
     </body>
@@ -165,4 +188,4 @@ const orderHTML = (data) => {
 `;
 };
 
-export default orderHTML;
+export default quoteHtml;

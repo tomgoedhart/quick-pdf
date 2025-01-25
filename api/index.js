@@ -35,7 +35,7 @@ const cleanData = (data) => {
       value === Object(value) && Object.keys(value).length === 0 ? "" : value
     )
   );
-  console.log({ cleaned });
+
   return cleaned;
 };
 
