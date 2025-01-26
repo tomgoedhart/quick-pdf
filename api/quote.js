@@ -37,8 +37,9 @@ const quoteHtml = (data) => {
           <h1>Offerte</h1>
           <p>Offertenummer: ${data.order_info.order_number}</p>
           <p>Offertedatum: ${data.order_info.order_date}</p>
-          <p>Referentie: ${data.order_info.reference_name}</p>
-          <p>Referentie nr: ${data.order_info.reference_number}</p>
+          <p>Contactpersoon: ${data.order_info.reference_name}</p>
+          <p>Inkoop nr: ${data.order_info.reference_number}</p>
+          <p>${data.order_info.description}</p>
         </div>
 
         <!-- Customer Information -->
