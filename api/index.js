@@ -291,25 +291,27 @@ app.post("/sticker", async (req, res) => {
 
     // Dymo Labelwriter 450
     const addressSize = {
-      width: 88,
-      height: 36,
+      width: "88mm",
+      height: "36mm",
     };
 
-    const postSize = {
-      width: 150,
-      height: 102,
-    };
+    // const postSize = {
+    //   width: "150mm",
+    //   height: "102mm",
+    // };
 
-    const [addressPdf, postPdf] = await Promise.all([
-      handleAddressSticker(data, addressSize),
-      handlePostSticker(data, postSize),
-    ]);
+    const addressPdf = await handleAddressSticker(data, addressSize);
+
+    // const [addressPdf, postPdf] = await Promise.all([
+    //   handleAddressSticker(data, addressSize),
+    //   handlePostSticker(data, postSize),
+    // ]);
 
     res.json({
       message: "PDFs generated and uploaded successfully",
       printed: data.print,
       address: addressPdf.url,
-      post: postPdf.url,
+      //post: postPdf.url,
     });
   } catch (error) {
     console.error("Error processing address sticker:", error);
