@@ -103,10 +103,12 @@ const generatePdf = async (data, html, size) => {
         }
       }
 
-      browser = await puppeteer.launch();
+      browser = await puppeteer.launch({
+        args: ["--no-sandbox", "--disable-web-security"],
+      });
     } else {
       browser = await puppeteerCore.launch({
-        args: chromium.args,
+        args: [...chromium.args, "--no-sandbox", "--disable-web-security"],
         defaultViewport: chromium.defaultViewport,
         executablePath: await chromium.executablePath(),
         headless: chromium.headless,

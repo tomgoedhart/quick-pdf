@@ -91,7 +91,7 @@ h2 {
   vertical-align: top;
 }
 
-.table *:not(tfoot) tr:nth-child(odd) td {
+.table *:not(tfoot) tr.item-info td {
   border-top: 1px solid var(--border-color);
 }
 

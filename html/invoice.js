@@ -95,10 +95,10 @@ const invoiceHtml = (data) => {
           .map(
             (item) => `
           <tr class="item-info">
-            <td rowspan="${item.items.length * 2 + 1}">
+            <td rowspan="${item.items.length + 1}">
               ${item.date}
             </td>
-            <td rowspan="${item.items.length * 2 + 1}">
+            <td rowspan="${item.items.length + 1}">
               <strong>${item.order}</strong><br/>
               Referentie: ${item.reference_name}<br/>
               Referentienummer: ${item.reference_number}<br/>
