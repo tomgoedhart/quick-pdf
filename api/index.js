@@ -18,6 +18,7 @@ import addressStickerHtml from "../html/addressSticker.js";
 import postStickerHtml from "../html/postSticker.js";
 
 import s3 from "./s3.js";
+import sendEmail from "./sendEmail.js";
 import printPDF from "./print.js";
 
 const app = express();
@@ -334,6 +335,21 @@ app.post("/move-folder", async (req, res) => {
     res
       .status(400)
       .json({ error: "Error processing s3", message: error.message });
+  }
+});
+
+app.post("/send-email", async (req, res) => {
+  try {
+    const data = cleanData(req.body);
+    if (!data) {
+      throw new Error("No data provided");
+    }
+    await sendEmail(req, res);
+  } catch (error) {
+    console.error("Error processing send email:", error);
+    res
+      .status(400)
+      .json({ error: "Error processing send email", message: error.message });
   }
 });
 
