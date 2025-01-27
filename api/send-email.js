@@ -1,6 +1,5 @@
 import sgMail from '@sendgrid/mail';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { authenticate } from '../utils/auth';
 
 // Initialize S3 client with environment variables
 const s3Client = new S3Client({
@@ -13,6 +12,14 @@ const s3Client = new S3Client({
 
 // Initialize SendGrid with environment variable
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// Authentication function
+function authenticate(req) {
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey !== 'LADJM6JLBBVWAKIASBGQ') {
+    throw new Error('Unauthorized');
+  }
+}
 
 // Helper function to parse S3 URL (reuse from move-folder.js)
 function parseS3Url(url) {
@@ -44,6 +51,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Check API key authentication
     authenticate(req);
 
     const { attachment, email, from_email, subject, message } = req.body;
