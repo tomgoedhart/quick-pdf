@@ -13,6 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.722.0",
     "@aws-sdk/lib-storage": "^3.722.0",
+    "@sendgrid/mail": "^8.1.4",
     "@sparticuz/chromium": "^131.0.1",
     "@vercel/node": "^5.0.2",
     "axios": "^1.7.9",

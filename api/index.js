@@ -18,7 +18,7 @@ import addressStickerHtml from "../html/addressSticker.js";
 import postStickerHtml from "../html/postSticker.js";
 
 import s3 from "./s3.js";
-import sendEmail from "./sendEmail.js";
+import sendEmail from "./send-email.js";
 import printPDF from "./print.js";
 
 const app = express();
@@ -62,6 +62,7 @@ const generatePdf = async (data, html, size) => {
       bottom: "0",
       left: "0",
     };
+    pdfProperties.landscape = false;
   } else if (data.type === "Factuur") {
     pdfProperties = {
       ...pdfProperties,
@@ -294,6 +295,8 @@ app.post("/sticker", async (req, res) => {
     const addressSize = {
       width: "88mm",
       height: "36mm",
+      // width: "36mm",
+      // height: "88mm",
     };
 
     // const postSize = {
