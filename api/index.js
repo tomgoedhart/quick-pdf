@@ -62,7 +62,6 @@ const generatePdf = async (data, html, size) => {
       bottom: "0",
       left: "0",
     };
-    pdfProperties.landscape = false;
   } else if (data.type === "Factuur") {
     pdfProperties = {
       ...pdfProperties,
@@ -293,10 +292,10 @@ app.post("/sticker", async (req, res) => {
 
     // Dymo Labelwriter 450
     const addressSize = {
-      width: "88mm",
-      height: "36mm",
-      // width: "36mm",
-      // height: "88mm",
+      // width: "88mm",
+      // height: "36mm",
+      width: "36mm",
+      height: "88mm",
     };
 
     // const postSize = {

@@ -19,11 +19,6 @@
   font-style: italic;
 }
 
-body {
-  font-family: "Futura", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
 :root {
   --border-color: #eee;
 }
@@ -45,6 +40,8 @@ body {
   flex-direction: column;
   justify-content: center;
   height: 100vh;
+  width: 100vw;
+  transform: rotate(-90deg) translateX(calc(50vw - 50vh));
 }
 
 h1 {
@@ -58,8 +55,8 @@ p {
 
 @page {
   padding: 4mm;
-  size: 88mm 36mm;
+  /* size: 88mm 36mm; */
+  size: 36mm 88mm;
   background: #fff;
   print-color-adjust: exact;
-  /* border: 1px solid var(--border-color); */
 }
