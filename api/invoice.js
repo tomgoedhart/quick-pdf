@@ -8,17 +8,15 @@ const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
 const logo = fs.readFileSync(join(__dirname, "logoGrey.svg"), "base64");
 
 const invoiceHtml = (data) => {
-  const hasDiscount = data.items.some((item) =>
-    item.items.some(
-      (subItem) => !subItem.discount?.replace("€", "").trim()?.startsWith("0")
-    )
-  );
+  const hasDiscount =
+    data.totals?.discount?.label &&
+    data.totals?.discount?.cost &&
+    !data.totals.discount.cost.replace("€", "").trim().startsWith("0");
 
   const hasSmallOrderFee =
-    !data.totals.small_order_fee?.cost
-      ?.replace("€", "")
-      .trim()
-      ?.startsWith("0") || false;
+    data.totals?.small_order_fee?.label &&
+    data.totals?.small_order_fee?.cost &&
+    !data.totals.small_order_fee.cost.replace("€", "").trim().startsWith("0");
 
   return `
   <!DOCTYPE html>

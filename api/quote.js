@@ -7,14 +7,15 @@ const __dirname = dirname(__filename);
 const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
 
 const quoteHtml = (data) => {
-  const hasDiscount = data.items.some(
-    (item) => !item.discount_amount.replace("€", "").trim()?.startsWith("0")
-  );
+  const hasDiscount =
+    data.totals?.discount?.label &&
+    data.totals?.discount?.cost &&
+    !data.totals.discount.cost.replace("€", "").trim().startsWith("0");
 
-  const hasSmallOrderFee = !data.totals.small_order_fee.cost
-    ?.replace("€", "")
-    .trim()
-    ?.startsWith("0");
+  const hasSmallOrderFee =
+    data.totals?.small_order_fee?.label &&
+    data.totals?.small_order_fee?.cost &&
+    !data.totals.small_order_fee.cost.replace("€", "").trim().startsWith("0");
 
   const hidePrices = data.hidePrices;
   const hideSizes = data.hideSizes;
