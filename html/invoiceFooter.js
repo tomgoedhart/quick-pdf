@@ -4,7 +4,10 @@ import { dirname, join } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const logo = fs.readFileSync(join(__dirname, "metaaluni.svg"), "base64");
+const logo = fs.readFileSync(
+  join(__dirname, "../assets/metaaluni.svg"),
+  "base64"
+);
 
 const footerTemplate = (data) => `
   <footer style="display: flex; justify-content: start; align-items: center; margin: 2cm 0 0.45cm; padding: 0.12cm 1cm; width: 100%; font-size: 10px; color: #fff; background: #790845; -webkit-print-color-adjust: exact;">

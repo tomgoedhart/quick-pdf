@@ -7,15 +7,15 @@ import fs from "fs";
 import { S3Client } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { dirname } from "path";
-import header from "./header.js";
-import footer from "./footer.js";
-import invoiceHeader from "./invoiceHeader.js";
-import invoiceFooter from "./invoiceFooter.js";
-import invoiceHtml from "./invoice.js";
-import orderHtml from "./order.js";
-import quoteHtml from "./quote.js";
-import addressStickerHtml from "./addressSticker.js";
-import postStickerHtml from "./postSticker.js";
+import header from "../html/header.js";
+import footer from "../html/footer.js";
+import invoiceHeader from "../html/invoiceHeader.js";
+import invoiceFooter from "../html/invoiceFooter.js";
+import invoiceHtml from "../html/invoice.js";
+import orderHtml from "../html/order.js";
+import quoteHtml from "../html/quote.js";
+import addressStickerHtml from "../html/addressSticker.js";
+import postStickerHtml from "../html/postSticker.js";
 
 import s3 from "./s3.js";
 import printPDF from "./print.js";
@@ -337,6 +337,6 @@ app.post("/move-folder", async (req, res) => {
   }
 });
 
-// app.listen(port, () => {
-//   console.log(` Server is running on http://localhost:${port}`);
-// });
+app.listen(port, () => {
+  console.log(` Server is running on http://localhost:${port}`);
+});

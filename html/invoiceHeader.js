@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const logo = fs.readFileSync(join(__dirname, "logo.svg"), "base64");
+const logo = fs.readFileSync(join(__dirname, "../assets/logo.svg"), "base64");
 
 const headerTemplate = (data) => `
   <header style="margin: auto; padding: 0.5cm 1cm; height: 4cm; width: 100%;  font-size: 18px; -webkit-print-color-adjust: exact; color: #fff;">

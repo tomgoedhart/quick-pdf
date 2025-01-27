@@ -4,9 +4,9 @@ import { dirname, join } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const styles = fs.readFileSync(join(__dirname, "styles.css"), "utf8");
+const styles = fs.readFileSync(join(__dirname, "../styles/styles.css"), "utf8");
 
-const orderHTML = (data) => {
+const quoteHtml = (data) => {
   const hasDiscount =
     data.totals?.discount?.label &&
     data.totals?.discount?.cost &&
@@ -35,9 +35,9 @@ const orderHTML = (data) => {
       <div class="order-header">
         <!-- Order Information -->
         <div class="order-info">
-          <h1>Pakbon</h1>
-          <p>Ordernummer: ${data.order_info.order_number}</p>
-          <p>Orderdatum: ${data.order_info.order_date}</p>
+          <h1>Offerte</h1>
+          <p>Offertenummer: ${data.order_info.order_number}</p>
+          <p>Offertedatum: ${data.order_info.order_date}</p>
           <p>Contactpersoon: ${data.order_info.reference_name}</p>
           <p>Inkoop nr: ${data.order_info.reference_number}</p>
           <p>${data.order_info.description}</p>
@@ -48,7 +48,6 @@ const orderHTML = (data) => {
           <h2>${data.customer.name}</h2>
           <p>
             ${data.customer.address}<br/>
-            ${data.customer.address_2 ? data.customer.address_2 + "<br/>" : ""}
             ${data.customer.postal_code} ${data.customer.city}
           </p>
         </div>
@@ -150,6 +149,8 @@ const orderHTML = (data) => {
               }" rowspan="5" class="additional-notes">
                 <h3>${data.footer.additional_note_header}</h3>
                 <p>${data.footer.additional_notes}</p>
+                <p>${data.footer.quote_expiry}</p>
+                <p>${data.footer.quote_staff}</p>
               </td>
             </tr>
             ${
@@ -189,4 +190,4 @@ const orderHTML = (data) => {
 `;
 };
 
-export default orderHTML;
+export default quoteHtml;

@@ -5,7 +5,7 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const styles = fs.readFileSync(
-  join(__dirname, "postStickerStyles.css"),
+  join(__dirname, "../styles/postStickerStyles.css"),
   "utf8"
 );
 
