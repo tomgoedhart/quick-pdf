@@ -1,3 +1,24 @@
+@font-face {
+  font-family: "Futura";
+  src: url("../fonts/Futura-Medium-01.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Futura";
+  src: url("../fonts/Futura-Bold-03.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Futura";
+  src: url("../fonts/Futura-MediumItalic-02.woff2") format("woff2");
+  font-weight: normal;
+  font-style: italic;
+}
+
 :root {
   --border-color: #eee;
 }
@@ -9,7 +30,7 @@
 }
 
 body {
-  font-family: "Futura", sans-serif;
+  font-family: "Futura", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   print-color-adjust: exact;
 }
