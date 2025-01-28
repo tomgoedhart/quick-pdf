@@ -39,26 +39,24 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 100vh;
-  width: 100vw;
-  padding: 0 0 0 4cm;
-  transform: rotate(-90deg) translateX(calc(50vw - 50vh));
+  height: 36mm;
+  width: 88mm;
+  padding: 0 0 0 1cm;
+  transform: rotate(-90deg) translateX(-26mm) translateY(-27mm);
 }
 
 h1 {
-  font-size: 44pt;
+  font-size: 17pt;
   font-weight: bold;
 }
 
 p {
-  font-size: 32pt;
+  font-size: 13pt;
 }
 
 @page {
-  padding: 4mm;
-  /* size: 88mm 36mm; */
-  /* size: 36mm 88mm; */
-  size: 144mm 352mm;
+  padding: 0;
+  size: 36mm 88mm;
   background: #fff;
   print-color-adjust: exact;
 }
