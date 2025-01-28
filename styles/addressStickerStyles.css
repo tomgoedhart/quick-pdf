@@ -41,23 +41,24 @@ body {
   justify-content: center;
   height: 100vh;
   width: 100vw;
-  padding: 0 0 0 1cm;
+  padding: 0 0 0 4cm;
   transform: rotate(-90deg) translateX(calc(50vw - 50vh));
 }
 
 h1 {
-  font-size: 11pt;
+  font-size: 44pt;
   font-weight: bold;
 }
 
 p {
-  font-size: 8pt;
+  font-size: 32pt;
 }
 
 @page {
   padding: 4mm;
   /* size: 88mm 36mm; */
-  size: 36mm 88mm;
+  /* size: 36mm 88mm; */
+  size: 144mm 352mm;
   background: #fff;
   print-color-adjust: exact;
 }
