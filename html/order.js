@@ -141,8 +141,30 @@ const orderHTML = (data) => {
               }" rowspan="1" class="sender">
                 <strong>Verzender</strong> ${data.totals.shipping.method}
               </td>
-              <td>${data.totals.subtotal.label}</td>
-              <td>${data.totals.subtotal.cost}</td>
+              ${
+                hasDiscount
+                  ? `
+                  <td>${data.totals.discount.label}</td>
+                  <td>${data.totals.discount.cost}</td>
+                `
+                  : ""
+              }
+              ${
+                hasSmallOrderFee && !hasDiscount
+                  ? `
+                  <td>${data.totals.discount.label}</td>
+                  <td>${data.totals.discount.cost}</td>
+                `
+                  : ""
+              }
+              ${
+                !hasSmallOrderFee && !hasDiscount
+                  ? `
+                  <td>${data.totals.shipping.label}</td>
+                  <td>${data.totals.shipping.cost}</td>
+                `
+                  : ""
+              }
             </tr>
             <tr>
               <td colspan="${
@@ -152,18 +174,9 @@ const orderHTML = (data) => {
                 <p>${data.footer.additional_notes}</p>
               </td>
             </tr>
+           
             ${
-              hasDiscount
-                ? `
-              <tr>
-                <td>${data.totals.discount.label}</td>
-                <td>${data.totals.discount.cost}</td>
-              </tr>
-            `
-                : ""
-            }
-            ${
-              hasSmallOrderFee
+              hasSmallOrderFee && hasDiscount
                 ? `
               <tr>
                 <td>${data.totals.small_order_fee.label}</td>
@@ -172,13 +185,29 @@ const orderHTML = (data) => {
             `
                 : ""
             }
-            <tr>
-              <td>${data.totals.shipping.label}</td>
-              <td>${data.totals.shipping.cost}</td>
-            </tr>
+            ${
+              hasSmallOrderFee || hasDiscount
+                ? `
+              <tr>
+                <td>${data.totals.shipping.label}</td>
+                <td>${data.totals.shipping.cost}</td>
+              </tr>
+            `
+                : ""
+            }
             <tr class="total">
               <td>${data.totals.total.label}</td>
               <td>${data.totals.total.cost}</td>
+            </tr>
+
+            <tr class="empty">
+              <td></td>
+            </tr>
+            <tr class="empty">
+              <td></td>
+            </tr>
+            <tr class="empty">
+              <td></td>
             </tr>
           </tfoot> `
           }

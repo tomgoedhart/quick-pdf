@@ -158,8 +158,6 @@ const invoiceHtml = (data) => {
                 </tr>
               </table>
             </td>
-            <td>${data.totals.subtotal.label}</td>
-            <td>${data.totals.subtotal.cost}</td>
           </tr>
           ${
             hasDiscount
@@ -196,6 +194,12 @@ const invoiceHtml = (data) => {
           <tr class="total">
             <td>${data.totals.total?.label}</td>
             <td>${data.totals.total.cost}</td>
+          </tr>
+          <tr class="empty">
+            <td></td>
+          </tr>
+          <tr class="empty">
+            <td></td>
           </tr>
         </tfoot>
       </tbody>
