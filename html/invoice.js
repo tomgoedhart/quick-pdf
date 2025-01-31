@@ -9,6 +9,10 @@ const logo = fs.readFileSync(
   join(__dirname, "../assets/logoGrey.svg"),
   "base64"
 );
+const logoWhite = fs.readFileSync(
+  join(__dirname, "../assets/logo.svg"),
+  "base64"
+);
 
 const invoiceHtml = (data) => {
   const hasDiscount =
@@ -42,17 +46,104 @@ const invoiceHtml = (data) => {
         z-index: -1;
         background-image: url('data:image/svg+xml;base64,${logo}');
         background-repeat: no-repeat;
-        background-size: 70%;
-        background-position: 123% 130%;
+        background-size: 60%;
+        background-position: bottom right;
       }
 
       @page {
-        padding: 5cm 0 0;
+        padding: 1cm 0 2.5cm;
+      }
+
+      .table-invoice {
+        padding: 0 0 4cm;
+      }
+
+      #header { 
+        padding: 0 !important;
+      }
+
+      header {
+        margin: 0 auto;
+        padding: 0.5cm 1cm;
+        height: 4cm;
+        width: 100vw;
+         font-size: 18px;
+        -webkit-print-color-adjust: exact;
+        color: #fff;
+      }
+
+      header:before,
+      header:after {
+        content: "";
+        display: block;
+        position: absolute;
+        z-index: -1;
+        top: 4cm;
+        width: 4.5cm;
+        height: 3cm;
+        background: #790845;
+      }
+
+      header:before {
+        left: 0;
+        border-radius: 0 0.2cm 0.2cm 0;
+      }
+
+      header:after {
+        right: 0;
+        width: 1cm;
+        border-radius: 0.2cm 0 0 0.2cm;
+      }
+
+      header img {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 3.5cm;
+      }
+
+      header p { 
+        position: absolute;
+        z-index: 1;
+        top: 3.88cm;
+        left: 0cm;
+        font-size: 12px;
+        text-align: left;
+        white-space: pre;
+        width: 3cm;
+        font-weight: 200;
+        color: #fff;
+      }
+
+      ${
+        !data.digital
+          ? `
+          header:before,
+          header:after,
+          header p,
+          header img {
+            display: none;
+          }
+        `
+          : ""
       }
     </style>
   </head>
   <body class="invoice">
     ${!data.digital ? "" : `<div class="background-image"></div>`}
+
+    <header>
+      <img src="data:image/svg+xml;base64,${logoWhite}" alt="Quick logo" />
+      <p>
+        ${data.header.company_info.address}
+        ${data.header.company_info.postal_code} ${data.header.company_info.city}
+        ${data.header.company_info.contact.phone}
+
+        ${data.header.company_info.contact.email}
+        ${data.header.company_info.contact.website}
+      </p>
+    </header>
 
     <div class="order-header">
       <!-- Order Information -->

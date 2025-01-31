@@ -73,7 +73,6 @@ const generatePdf = async (data, html, size) => {
       bottom: "0",
       left: "0",
     };
-    pdfProperties.headerTemplate = invoiceHeader(data);
     pdfProperties.footerTemplate = invoiceFooter(data);
   } else {
     pdfProperties = {
