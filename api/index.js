@@ -162,15 +162,10 @@ const generatePdf = async (data, html, size) => {
       const result = await upload.done();
       s3Url = `s3://${result.Bucket}/${result.Key}`;
 
-      console.log("⬆ PDF file uploaded to S3 successfully", s3Url);
+      console.log(" PDF file uploaded to S3 successfully", s3Url);
 
       if (data.print) {
-        try {
-          await printPDF(s3Url, data.printer);
-        } catch (error) {
-          console.error("Error printing PDF:", error);
-          throw error;
-        }
+        await printPDF(s3Url, data.printer);
       }
     }
 
@@ -200,19 +195,23 @@ app.post("/invoice", async (req, res) => {
     );
 
     // Create printed invoice
-    const html = invoiceHtml({ ...data, digital: false });
-    const pdf = await generatePdf(
-      {
-        ...data,
-        digital: false,
-        path: `${data.path?.replace(".pdf", "")}_print.pdf`,
-      },
-      html
-    );
+    let printPdf;
+    if (data.print) {
+      const html = invoiceHtml({ ...data, digital: false });
+      const printPdf = await generatePdf(
+        {
+          ...data,
+          digital: false,
+          path: `${data.path?.replace(".pdf", "")}_print.pdf`,
+        },
+        html
+      );
+    }
     res.json({
       message: "PDF generated and uploaded successfully",
       printed: data.print,
-      url: pdf.url,
+      url: digitalPdf.url,
+      printUrl: printPdf?.url ?? null,
     });
   } catch (error) {
     console.error("Error processing invoice:", error);
