@@ -140,8 +140,6 @@ const quoteHtml = (data) => {
               }" rowspan="1" class="sender">
                 <strong>Verzender</strong> ${data.totals.shipping.method}
               </td>
-              <td>${data.totals.subtotal.label}</td>
-              <td>${data.totals.subtotal.cost}</td>
             </tr>
             <tr>
               <td colspan="${
@@ -180,6 +178,12 @@ const quoteHtml = (data) => {
             <tr class="total">
               <td>${data.totals.total.label}</td>
               <td>${data.totals.total.cost}</td>
+            </tr>
+            <tr class="empty">
+              <td></td>
+            </tr>
+            <tr class="empty">
+              <td></td>
             </tr>
           </tfoot> `
           }
