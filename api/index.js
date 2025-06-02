@@ -20,6 +20,8 @@ import postStickerHtml from "../html/postSticker.js";
 import s3 from "./s3.js";
 import sendEmail from "./send-email.js";
 import printPDF from "./print.js";
+// Import the curl-based Synology implementation
+import { uploadToSynologyWithCurl, moveFolder } from "./synology-curl.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -136,9 +138,61 @@ const generatePdf = async (data, html, size) => {
       }
     }
 
-    // Upload to S3
-    let s3Url;
-    if (process.env.NODE_DISABLE_S3 !== "true") {
+    // Upload to storage (Synology or S3)
+    let fileUrl;
+    
+    // Check if Synology is enabled
+    if (process.env.USE_SYNOLOGY === "true" && process.env.SYNOLOGY_SID) {
+      try {
+        // Upload to Synology using curl (more reliable method)
+        const synologyResult = await uploadToSynologyWithCurl(pdfBuffer, path);
+        fileUrl = synologyResult.url;
+        
+        console.log(" PDF file uploaded to Synology successfully", fileUrl);
+        
+        if (data.print) {
+          await printPDF(fileUrl, data.printer);
+        }
+      } catch (synologyError) {
+        console.error("Error uploading to Synology:", synologyError);
+        
+        // If Synology fails and S3 is configured, fall back to S3
+        if (process.env.NODE_DISABLE_S3 !== "true") {
+          console.log("Falling back to S3 upload");
+          const s3Client = new S3Client({
+            region: process.env.NODE_AWS_REGION,
+            credentials: {
+              accessKeyId: process.env.NODE_AWS_ACCESS_KEY_ID,
+              secretAccessKey: process.env.NODE_AWS_SECRET_ACCESS_KEY,
+            },
+          });
+
+          const uploadParams = {
+            Bucket: "quick-opslag",
+            Key: path,
+            Body: pdfBuffer,
+            ContentType: "application/pdf",
+          };
+
+          const upload = new Upload({
+            client: s3Client,
+            params: uploadParams,
+          });
+
+          const result = await upload.done();
+          fileUrl = `s3://${result.Bucket}/${result.Key}`;
+
+          console.log(" PDF file uploaded to S3 successfully", fileUrl);
+
+          if (data.print) {
+            await printPDF(fileUrl, data.printer);
+          }
+        } else {
+          throw synologyError;
+        }
+      }
+    } else if (process.env.NODE_DISABLE_S3 !== "true") {
+      // Upload to S3 if Synology is not enabled
       const s3Client = new S3Client({
         region: process.env.NODE_AWS_REGION,
         credentials: {
@@ -160,19 +214,19 @@ const generatePdf = async (data, html, size) => {
       });
 
       const result = await upload.done();
-      s3Url = `s3://${result.Bucket}/${result.Key}`;
+      fileUrl = `s3://${result.Bucket}/${result.Key}`;
 
-      console.log(" PDF file uploaded to S3 successfully", s3Url);
+      console.log(" PDF file uploaded to S3 successfully", fileUrl);
 
       if (data.print) {
-        await printPDF(s3Url, data.printer);
+        await printPDF(fileUrl, data.printer);
       }
     }
 
     return {
       path,
       pdfBuffer,
-      url: s3Url,
+      url: fileUrl,
     };
   } catch (error) {
     console.error("Error generating PDF:", error);
@@ -309,12 +363,32 @@ app.post("/move-folder", async (req, res) => {
     if (!data) {
       throw new Error("No data provided");
     }
-    await s3(req, res);
+    
+    // Determine which storage system to use (Synology or S3)
+    if (process.env.USE_SYNOLOGY === "true" && process.env.SYNOLOGY_SID) {
+      try {
+        // Use Synology folder move
+        await moveFolder(req, res);
+      } catch (synologyError) {
+        console.error("Error moving folder in Synology:", synologyError);
+        // If Synology fails and S3 is configured, fall back to S3
+        if (process.env.NODE_DISABLE_S3 !== "true") {
+          await s3(req, res);
+        } else {
+          throw synologyError;
+        }
+      }
+    } else if (process.env.NODE_DISABLE_S3 !== "true") {
+      // Use S3 folder move
+      await s3(req, res);
+    } else {
+      throw new Error("No storage system is properly configured");
+    }
   } catch (error) {
-    console.error("Error processing s3:", error);
+    console.error("Error processing folder move:", error);
     res
       .status(400)
-      .json({ error: "Error processing s3", message: error.message });
+      .json({ error: "Error processing folder move", message: error.message });
   }
 });
 
