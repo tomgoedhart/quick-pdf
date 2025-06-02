@@ -1,11 +1,12 @@
 # Quick Graveer PDF API
 
 This project provides an API endpoint that generates PDF's.
-It also provides an endpoint to change folders on S3.
+It also provides an endpoint to change folders on Synology or S3.
 
 ## Features
 
 Generates PDF's for the following types:
+
 - order (pakbon)
 - invoice (Factuur)
 - quote (Offerte)
@@ -58,6 +59,7 @@ Using Gunicorn to expose on network
 Using Ngrok to expose on internet (using Kees's free account)
 
 So:
+
 - The call is being made to vercel (eg https://quickgraveer-pdf-api.vercel.app/quote)
 - Script on Vercel generates the PDF and uploads it to S3
 - Script on Vercel calls the printer API on: https://cb1d-84-246-3-220.ngrok-free.app/print
@@ -67,9 +69,11 @@ So:
 See printer list at https:/clam-guiding-gelding.ngrok-free.app/printers
 
 # Ngrok
+
 ngrok http --url=clam-guiding-gelding.ngrok-free.app 6789
 
 # To get the print service running on the server at Quick
+
 source venv/bin/activate  
 gunicorn --bind 0.0.0.0:6789 app:app &  
 ngrok http --url=clam-guiding-gelding.ngrok-free.app http://0.0.0.0:6789 &
