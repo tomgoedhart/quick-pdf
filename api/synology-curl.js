@@ -40,8 +40,8 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
     // Encode the path for URL
     const encodedPath = encodeURIComponent(fullDirPath);
     
-    // Build the curl command
-    const curlCommand = `curl --silent --location --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.Upload&version=2&method=upload&path=${encodedPath}&create_parents=true&overwrite=true&_sid=${SYNOLOGY_SID}' --form 'file=@"${tempFilePath}"'`;
+    // Build the curl command with timeout parameters
+    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.Upload&version=2&method=upload&path=${encodedPath}&create_parents=true&overwrite=true&_sid=${SYNOLOGY_SID}' --form 'file=@"${tempFilePath}"'`;
     
     console.log(`Uploading to Synology: ${fullDirPath}/${filename}`);
     
@@ -70,10 +70,16 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
     
     console.log('Synology upload response:', response);
     
+    // Extract the domain from SYNOLOGY_BASE_URL
+    const synologyDomain = SYNOLOGY_BASE_URL.match(/https?:\/\/([^:]+)/)?.[0] || 'https://quickgraveer.synology.me';
+    
+    // Create a proper HTTP URL for the file
+    const httpUrl = `${synologyDomain}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(`${fullDirPath}/${filename}`)}&mode=download&_sid=${SYNOLOGY_SID}`;
+    
     return {
       success: true,
       data: response,
-      url: `synology://${fullDirPath}/${filename}`,
+      url: httpUrl,
       path: `${fullDirPath}/${filename}`
     };
   } catch (error) {
@@ -105,8 +111,8 @@ export async function moveSynologyFileWithCurl(oldPath, newPath) {
     const encodedOldPath = encodeURIComponent(fullOldPath);
     const encodedNewPath = encodeURIComponent(path.dirname(fullNewPath));
     
-    // Build the curl command for moving files
-    const curlCommand = `curl --silent --location --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.CopyMove&version=3&method=start&path=${encodedOldPath}&dest_folder_path=${encodedNewPath}&remove_src=true&_sid=${SYNOLOGY_SID}'`;
+    // Build the curl command for moving files with timeout parameters
+    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.CopyMove&version=3&method=start&path=${encodedOldPath}&dest_folder_path=${encodedNewPath}&remove_src=true&_sid=${SYNOLOGY_SID}'`;
     
     console.log(`Moving file in Synology from: ${fullOldPath} to: ${fullNewPath}`);
     
