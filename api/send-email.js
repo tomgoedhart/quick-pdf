@@ -1,14 +1,10 @@
 import sgMail from "@sendgrid/mail";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { exec } from 'child_process';
+import fs from 'fs';
+import { promisify } from 'util';
+import { v4 as uuidv4 } from 'uuid';
 
-// Initialize S3 client with environment variables
-const s3Client = new S3Client({
-  region: process.env.NODE_AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.NODE_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.NODE_AWS_SECRET_ACCESS_KEY,
-  },
-});
+const execPromise = promisify(exec);
 
 // Initialize SendGrid with environment variable
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -21,27 +17,68 @@ function authenticate(req) {
   }
 }
 
-// Helper function to parse S3 URL (reuse from move-folder.js)
-function parseS3Url(url) {
+// No longer need S3 URL parsing
+
+// Helper function to parse Synology path and download file
+async function downloadFromSynology(path) {
   try {
-    let bucket;
-    let prefix;
-
-    if (url.startsWith("https://")) {
-      const urlObj = new URL(url);
-      const hostname = urlObj.hostname;
-      bucket = hostname.split(".s3.")[0];
-      prefix = urlObj.pathname.replace(/^\//, "");
+    // Check if this is a synology:// protocol format or a relative path
+    let relativePath;
+    if (path.startsWith('synology://')) {
+      relativePath = path.replace('synology://', '');
     } else {
-      const cleanUrl = url.replace("s3://", "");
-      const parts = cleanUrl.split("/");
-      bucket = parts[0];
-      prefix = parts.slice(1).join("/");
+      // Assume it's already a relative path
+      relativePath = path;
     }
-
-    return { bucket, prefix };
+    
+    // Construct the full path
+    const basePath = process.env.SYNOLOGY_BASE_PATH || '/data/quick-opslag';
+    const fullPath = `${basePath}/${relativePath}`;
+    console.log(`Full Synology file path: ${fullPath}`);
+    
+    // Create a temporary file for the downloaded PDF
+    const tempFilePath = `/tmp/${uuidv4()}.pdf`;
+    
+    // Construct the Synology API URL
+    const synologyBaseUrl = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
+    const synologySid = process.env.SYNOLOGY_SID;
+    
+    if (!synologySid) {
+      throw new Error('Synology session ID (SID) is not configured');
+    }
+    
+    // Use curl with the Synology API to download the file
+    const curlCommand = `curl --insecure --fail --location --connect-timeout 30 --max-time 50 --output "${tempFilePath}" "${synologyBaseUrl}?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(fullPath)}&mode=download&_sid=${synologySid}"`;
+    
+    console.log(`Executing Synology download command for email attachment: ${curlCommand}`);
+    
+    // Execute the curl command
+    const { stdout, stderr } = await execPromise(curlCommand);
+    
+    if (stderr) {
+      console.log('Curl stderr (this may include progress info):', stderr);
+    }
+    
+    // Check if the file was downloaded successfully
+    if (fs.existsSync(tempFilePath) && fs.statSync(tempFilePath).size > 0) {
+      console.log(`Successfully downloaded file to ${tempFilePath}, size: ${fs.statSync(tempFilePath).size} bytes`);
+      
+      // Read the file into a buffer
+      const fileBuffer = fs.readFileSync(tempFilePath);
+      
+      // Clean up the temporary file
+      fs.unlinkSync(tempFilePath);
+      
+      // Extract the filename from the path
+      const filename = relativePath.split('/').pop();
+      
+      return { fileBuffer, filename };
+    } else {
+      throw new Error(`File download failed or file is empty: ${tempFilePath}`);
+    }
   } catch (error) {
-    throw new Error(`Invalid S3 URL format: ${url}`);
+    console.error('Error downloading from Synology:', error);
+    throw new Error(`Failed to download from Synology: ${error.message}`);
   }
 }
 
@@ -71,104 +108,60 @@ export default async function handler(req, res) {
       });
     }
 
-    // Parse S3 URL and get the file
-    const { bucket, prefix } = parseS3Url(attachment);
-
-    let s3Response;
+    // Download the attachment from Synology
+    let fileBuffer;
+    let filename;
+    
     try {
-      const getObjectCommand = new GetObjectCommand({
-        Bucket: bucket,
-        Key: prefix,
-      });
-
-      s3Response = await s3Client.send(getObjectCommand);
-    } catch (s3Error) {
-      console.error("S3 Error:", s3Error);
-
-      // Handle specific S3 errors
-      if (s3Error.name === "NoSuchKey") {
-        return res.status(404).json({
-          error: "The specified file does not exist in S3",
-        });
-      }
-      if (s3Error.name === "AccessDenied") {
-        return res.status(403).json({
-          error:
-            "Access denied to S3 file. Please check AWS credentials and permissions",
-        });
-      }
-      if (s3Error.name === "NoSuchBucket") {
-        return res.status(404).json({
-          error: "The specified S3 bucket does not exist",
-        });
-      }
-
-      // Generic S3 error
+      console.log('Downloading attachment using Synology API');
+      const result = await downloadFromSynology(attachment);
+      fileBuffer = result.fileBuffer;
+      filename = result.filename;
+    } catch (error) {
+      console.error('Error downloading from Synology:', error);
       return res.status(500).json({
-        error: "Error accessing S3 file",
-        details: s3Error.message,
+        error: 'Error accessing file from Synology',
+        details: error.message,
       });
     }
+    
+    // File buffer should be available at this point
 
-    // Validate content type (optional but recommended)
-    const contentType = s3Response.ContentType;
-    if (contentType && !contentType.includes("pdf")) {
-      return res.status(400).json({
-        error: "Invalid file type. Only PDF files are supported",
-      });
-    }
-
-    // Convert stream to buffer
-    try {
-      const chunks = [];
-      for await (const chunk of s3Response.Body) {
-        chunks.push(chunk);
-      }
-      const fileBuffer = Buffer.concat(chunks);
-
-      // Prepare email with attachment and sender name
-      const msg = {
-        to: email,
-        from: {
-          email: from_email,
-          name: from_name,
+    // Prepare email with attachment and sender name
+    const msg = {
+      to: email,
+      from: {
+        email: from_email,
+        name: from_name,
+      },
+      subject: subject,
+      text: message,
+      html: message.replace(/\n/g, "<br>"),
+      attachments: [
+        {
+          content: fileBuffer.toString("base64"),
+          filename: filename,
+          type: "application/pdf",
+          disposition: "attachment",
         },
-        subject: subject,
-        text: message,
-        html: message.replace(/\n/g, "<br>"),
-        attachments: [
-          {
-            content: fileBuffer.toString("base64"),
-            filename: prefix.split("/").pop(),
-            type: "application/pdf",
-            disposition: "attachment",
-          },
-        ],
-      };
+      ],
+    };
 
-      // Send email
-      try {
-        await sgMail.send(msg);
-      } catch (emailError) {
-        console.error("SendGrid Error:", emailError);
-        if (emailError.response) {
-          return res.status(400).json({
-            error: "Email sending failed",
-            details: emailError.response.body,
-          });
-        }
-        throw emailError;
-      }
-
+    // Send email
+    try {
+      await sgMail.send(msg);
       return res.status(200).json({
         message: "Email sent successfully",
       });
-    } catch (streamError) {
-      console.error("Stream Error:", streamError);
-      return res.status(500).json({
-        error: "Error processing file stream",
-        details: streamError.message,
-      });
+    } catch (emailError) {
+      console.error("SendGrid Error:", emailError);
+      if (emailError.response) {
+        return res.status(400).json({
+          error: "Email sending failed",
+          details: emailError.response.body,
+        });
+      }
+      throw emailError;
     }
   } catch (error) {
     console.error("General Error:", error);

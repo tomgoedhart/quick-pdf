@@ -76,11 +76,18 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
     // Create a proper HTTP URL for the file
     const httpUrl = `${synologyDomain}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(`${fullDirPath}/${filename}`)}&mode=download&_sid=${SYNOLOGY_SID}`;
     
+    // Create a relative path (without BASE_PATH prefix)
+    const relativePath = `${dirname}/${filename}`;
+    
+    console.log(`PDF file uploaded to Synology successfully ${fullDirPath}/${filename}`);
+    
     return {
       success: true,
       data: response,
-      url: httpUrl,
-      path: `${fullDirPath}/${filename}`
+      url: relativePath, // Return the relative path instead of the download URL
+      downloadUrl: httpUrl, // Keep the download URL as a separate property
+      path: `${fullDirPath}/${filename}`,
+      relativePath: relativePath
     };
   } catch (error) {
     console.error('Error uploading to Synology:', error.message);

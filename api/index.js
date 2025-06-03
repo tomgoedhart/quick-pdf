@@ -146,12 +146,18 @@ const generatePdf = async (data, html, size) => {
       try {
         // Upload to Synology using curl (more reliable method)
         const synologyResult = await uploadToSynologyWithCurl(pdfBuffer, path);
+        
+        // Use the relative path for the response URL
         fileUrl = synologyResult.url;
         
-        console.log(" PDF file uploaded to Synology successfully", fileUrl);
+        console.log("PDF file uploaded to Synology successfully", fileUrl);
         
+        // For printing, we need to use the local file path format
         if (data.print) {
-          await printPDF(fileUrl, data.printer);
+          // Format the path for the printer service
+          const printPath = `synology://${synologyResult.relativePath}`;
+          console.log("Sending to printer with path:", printPath);
+          await printPDF(printPath, data.printer);
         }
       } catch (synologyError) {
         console.error("Error uploading to Synology:", synologyError);
