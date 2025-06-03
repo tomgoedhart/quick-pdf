@@ -34,14 +34,16 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
     const fullDirPath = `${BASE_PATH}/${dirname}`;
     
     // Create a temporary file to upload
-    const tempFilePath = `/tmp/${uuidv4()}-${filename}`;
+    const tempId = uuidv4();
+    const tempFilePath = `/tmp/${tempId}-${filename}`;
     fs.writeFileSync(tempFilePath, fileBuffer);
     
     // Encode the path for URL
     const encodedPath = encodeURIComponent(fullDirPath);
     
-    // Build the curl command with timeout parameters
-    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.Upload&version=2&method=upload&path=${encodedPath}&create_parents=true&overwrite=true&_sid=${SYNOLOGY_SID}' --form 'file=@"${tempFilePath}"'`;
+    // Build the curl command with timeout parameters and specify the destination filename
+    const encodedDestPath = encodeURIComponent(`${fullDirPath}/${filename}`);
+    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.Upload&version=2&method=upload&path=${encodedPath}&create_parents=true&overwrite=true&dest_file_name=${encodeURIComponent(filename)}&_sid=${SYNOLOGY_SID}' --form 'file=@"${tempFilePath}"'`;
     
     console.log(`Uploading to Synology: ${fullDirPath}/${filename}`);
     
