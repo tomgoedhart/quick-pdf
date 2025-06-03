@@ -2,7 +2,7 @@
 
 This project provides an API endpoint that generates PDF's.
 It also provides an endpoint to change folders on Synology or S3.
-Generated mostly by AI.
+Generated mostly by AI and a bit by Kees and Tom.
 
 ## Features
 
