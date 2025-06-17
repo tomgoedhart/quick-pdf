@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { promises as fs } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { getSynologySid, logoutSynology } from './synology-auth';
+import { getSynologySid, logoutSynology } from './synology-auth.js';
 
 const execPromise = promisify(exec);
 

@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
-import { getSynologySid, logoutSynology } from './synology-auth';
+import { getSynologySid, logoutSynology } from './synology-auth.js';
 
 const execPromise = promisify(exec);
 
