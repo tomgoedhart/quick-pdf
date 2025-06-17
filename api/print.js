@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
+import { getSynologySid, logoutSynology } from './synology-auth';
 
 const execPromise = promisify(exec);
 
@@ -12,6 +13,7 @@ const printPDF = async (path, printer) => {
   
   // Check if this is a synology:// protocol format
   if (typeof path === 'string' && path.startsWith('synology://')) {
+    let sid = null;
     try {
       console.log('Detected Synology path format, using Synology API to download');
       
@@ -25,14 +27,14 @@ const printPDF = async (path, printer) => {
       
       // Construct the Synology API URL
       const synologyBaseUrl = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
-      const synologySid = process.env.SYNOLOGY_SID;
       
-      if (!synologySid) {
-        throw new Error('Synology session ID (SID) is not configured');
-      }
+      // Get a fresh Synology session ID for this request
+      console.log('Getting fresh Synology session ID');
+      sid = await getSynologySid();
+      console.log('Successfully obtained Synology session ID');
       
       // Use curl with the Synology API to download the file
-      const curlCommand = `curl --insecure --fail --location --connect-timeout 30 --max-time 50 --output "${tempFilePath}" "${synologyBaseUrl}?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(fullPath)}&mode=download&_sid=${synologySid}"`;
+      const curlCommand = `curl --insecure --fail --location --connect-timeout 30 --max-time 50 --output "${tempFilePath}" "${synologyBaseUrl}?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(fullPath)}&mode=download&_sid=${sid}"`;
       
       console.log(`Executing Synology download command: ${curlCommand}`);
       
@@ -47,11 +49,37 @@ const printPDF = async (path, printer) => {
       if (fs.existsSync(tempFilePath) && fs.statSync(tempFilePath).size > 0) {
         console.log(`Successfully downloaded file to ${tempFilePath}, size: ${fs.statSync(tempFilePath).size} bytes`);
         finalPath = tempFilePath;
+        
+        // Logout the session
+        try {
+          await logoutSynology(synologyBaseUrl, sid);
+          console.log('Successfully logged out Synology session');
+        } catch (logoutError) {
+          console.warn(`Warning: Failed to logout Synology session: ${logoutError.message}`);
+        }
       } else {
+        // Attempt to logout before throwing the error
+        try {
+          await logoutSynology(synologyBaseUrl, sid);
+        } catch (logoutError) {
+          console.warn(`Warning: Failed to logout Synology session: ${logoutError.message}`);
+        }
+        
         throw new Error(`File download failed or file is empty: ${tempFilePath}`);
       }
     } catch (error) {
-      console.error('Error downloading from Synology:', error);
+      console.error(`Error downloading from Synology: ${error.message}`);
+      
+      // Attempt to logout if we have a SID
+      if (sid) {
+        try {
+          await logoutSynology(synologyBaseUrl, sid);
+          console.log('Successfully logged out Synology session after error');
+        } catch (logoutError) {
+          console.warn(`Warning: Failed to logout Synology session: ${logoutError.message}`);
+        }
+      }
+      
       throw new Error(`Failed to download from Synology: ${error.message}`);
     }
   }

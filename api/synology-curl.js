@@ -3,13 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
+import { getSynologySid, logoutSynology } from './synology-auth';
 
 const execPromise = promisify(exec);
 
 // Synology configuration
 const SYNOLOGY_BASE_URL = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
 const BASE_PATH = process.env.SYNOLOGY_BASE_PATH || '/data/quick-opslag';
-const SYNOLOGY_SID = process.env.SYNOLOGY_SID;
 
 /**
  * Upload a file to Synology SharePoint using curl
@@ -18,10 +18,12 @@ const SYNOLOGY_SID = process.env.SYNOLOGY_SID;
  * @returns {Promise<Object>} - The response from the Synology API
  */
 export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
+  let sid = null;
   try {
-    if (!SYNOLOGY_SID) {
-      throw new Error('Synology session ID (SID) is not configured');
-    }
+    // Get a fresh Synology session ID for this request
+    console.log('Getting fresh Synology session ID for upload');
+    sid = await getSynologySid();
+    console.log('Successfully obtained Synology session ID for upload');
 
     // Normalize the path: remove leading slash if present
     const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
@@ -41,7 +43,7 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
     const encodedPath = encodeURIComponent(fullDirPath);
     
     // Build the curl command with timeout parameters and specify the destination filename
-    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.Upload&version=2&method=upload&path=${encodedPath}&create_parents=true&overwrite=true&dest_file_name=${encodeURIComponent(filename)}&_sid=${SYNOLOGY_SID}' --form 'file=@"${tempFilePath}"'`;
+    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.Upload&version=2&method=upload&path=${encodedPath}&create_parents=true&overwrite=true&dest_file_name=${encodeURIComponent(filename)}&_sid=${sid}' --form 'file=@"${tempFilePath}"'`;
     
     console.log(`Uploading to Synology: ${fullDirPath}/${filename}`);
     
@@ -51,8 +53,12 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
     // Clean up the temporary file
     fs.unlinkSync(tempFilePath);
     
-    if (stderr) {
-      console.error('Curl stderr:', stderr);
+    // Logout the session
+    try {
+      await logoutSynology(SYNOLOGY_BASE_URL, sid);
+      console.log('Successfully logged out Synology session after upload');
+    } catch (logoutError) {
+      console.warn(`Warning: Failed to logout Synology session: ${logoutError.message}`);
     }
     
     let response;
@@ -74,7 +80,7 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
     const synologyDomain = SYNOLOGY_BASE_URL.match(/https?:\/\/([^:]+)/)?.[0] || 'https://quickgraveer.synology.me';
     
     // Create a proper HTTP URL for the file
-    const httpUrl = `${synologyDomain}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(`${fullDirPath}/${filename}`)}&mode=download&_sid=${SYNOLOGY_SID}`;
+    const httpUrl = `${synologyDomain}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(`${fullDirPath}/${filename}`)}&mode=download&_sid=${sid}`;
     
     // Create a relative path (without BASE_PATH prefix)
     const relativePath = `${dirname}/${filename}`;
@@ -90,8 +96,19 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
       relativePath: relativePath
     };
   } catch (error) {
-    console.error('Error uploading to Synology:', error.message);
-    throw new Error(`Failed to upload to Synology: ${error.message}`);
+    console.error('Error uploading to Synology:', error);
+    
+    // Attempt to logout if we have a SID
+    if (sid) {
+      try {
+        await logoutSynology(SYNOLOGY_BASE_URL, sid);
+        console.log('Successfully logged out Synology session after error');
+      } catch (logoutError) {
+        console.warn(`Warning: Failed to logout Synology session: ${logoutError.message}`);
+      }
+    }
+    
+    throw error;
   }
 }
 
@@ -102,10 +119,12 @@ export async function uploadToSynologyWithCurl(fileBuffer, filePath) {
  * @returns {Promise<Object>} - Response from the Synology API
  */
 export async function moveSynologyFileWithCurl(oldPath, newPath) {
+  let sid = null;
   try {
-    if (!SYNOLOGY_SID) {
-      throw new Error('Synology session ID (SID) is not configured');
-    }
+    // Get a fresh Synology session ID for this request
+    console.log('Getting fresh Synology session ID for move operation');
+    sid = await getSynologySid();
+    console.log('Successfully obtained Synology session ID for move operation');
 
     // Normalize paths
     const normalizedOldPath = oldPath.startsWith('/') ? oldPath.substring(1) : oldPath;
@@ -119,7 +138,7 @@ export async function moveSynologyFileWithCurl(oldPath, newPath) {
     const encodedNewPath = encodeURIComponent(path.dirname(fullNewPath));
     
     // Build the curl command for moving files with timeout parameters
-    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.CopyMove&version=3&method=start&path=${encodedOldPath}&dest_folder_path=${encodedNewPath}&remove_src=true&_sid=${SYNOLOGY_SID}'`;
+    const curlCommand = `curl --silent --location --connect-timeout 30 --max-time 50 --request GET '${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.CopyMove&version=3&method=start&path=${encodedOldPath}&dest_folder_path=${encodedNewPath}&remove_src=true&_sid=${sid}'`;
     
     console.log(`Moving file in Synology from: ${fullOldPath} to: ${fullNewPath}`);
     
