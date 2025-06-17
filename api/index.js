@@ -142,7 +142,7 @@ const generatePdf = async (data, html, size) => {
     let fileUrl;
     
     // Check if Synology is enabled
-    if (process.env.USE_SYNOLOGY === "true" && process.env.SYNOLOGY_SID) {
+    if (process.env.USE_SYNOLOGY === "true") {
       try {
         // Upload to Synology using curl (more reliable method)
         const synologyResult = await uploadToSynologyWithCurl(pdfBuffer, path);
@@ -371,7 +371,7 @@ app.post("/move-folder", async (req, res) => {
     }
     
     // Determine which storage system to use (Synology or S3)
-    if (process.env.USE_SYNOLOGY === "true" && process.env.SYNOLOGY_SID) {
+    if (process.env.USE_SYNOLOGY === "true") {
       try {
         // Use Synology folder move
         await moveFolder(req, res);

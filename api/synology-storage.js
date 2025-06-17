@@ -2,6 +2,7 @@ import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
+import { getSynologySid, logoutSynology } from './synology-auth.js';
 
 // Initialize Synology client configuration
 const SYNOLOGY_BASE_URL = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
@@ -9,7 +10,6 @@ const SYNOLOGY_API = 'SYNO.FileStation.Upload';
 const SYNOLOGY_VERSION = '2';
 const SYNOLOGY_METHOD = 'upload';
 const BASE_PATH = process.env.SYNOLOGY_BASE_PATH || '/data/quick-opslag';
-const SYNOLOGY_SID = process.env.SYNOLOGY_SID;
 
 /**
  * Upload a file to Synology SharePoint
@@ -19,10 +19,10 @@ const SYNOLOGY_SID = process.env.SYNOLOGY_SID;
  * @returns {Promise<Object>} - The response from the Synology API
  */
 export async function uploadToSynology(fileBuffer, filePath, contentType = 'application/pdf') {
+  let sid = null;
   try {
-    if (!SYNOLOGY_SID) {
-      throw new Error('Synology session ID (SID) is not configured');
-    }
+    // Get a fresh Synology SID
+    sid = await getSynologySid();
 
     // Normalize the path: remove leading slash if present
     const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
@@ -42,7 +42,7 @@ export async function uploadToSynology(fileBuffer, filePath, contentType = 'appl
     });
 
     // Build the URL with proper encoding
-    const url = `${SYNOLOGY_BASE_URL}?api=${SYNOLOGY_API}&version=${SYNOLOGY_VERSION}&method=${SYNOLOGY_METHOD}&path=${encodeURIComponent(fullDirPath)}&create_parents=true&overwrite=true&_sid=${SYNOLOGY_SID}`;
+    const url = `${SYNOLOGY_BASE_URL}?api=${SYNOLOGY_API}&version=${SYNOLOGY_VERSION}&method=${SYNOLOGY_METHOD}&path=${encodeURIComponent(fullDirPath)}&create_parents=true&overwrite=true&_sid=${sid}`;
     
     console.log(`Uploading to Synology: ${fullDirPath}/${filename}`);
     
@@ -69,6 +69,9 @@ export async function uploadToSynology(fileBuffer, filePath, contentType = 'appl
 
     console.log('Synology upload response:', response.data);
     
+    // Logout the Synology session
+    await logoutSynology(SYNOLOGY_BASE_URL, sid);
+    
     return {
       success: true,
       data: response.data,
@@ -81,6 +84,15 @@ export async function uploadToSynology(fileBuffer, filePath, contentType = 'appl
       console.error('Response data:', error.response.data);
     }
     
+    // Attempt to logout if we have a SID
+    if (sid) {
+      try {
+        await logoutSynology(SYNOLOGY_BASE_URL, sid);
+      } catch (logoutError) {
+        console.error('Error logging out from Synology:', logoutError.message);
+      }
+    }
+    
     throw new Error(`Failed to upload to Synology: ${error.message}`);
   }
 }
@@ -91,23 +103,36 @@ export async function uploadToSynology(fileBuffer, filePath, contentType = 'appl
  * @returns {Promise<Array>} - List of files in the directory
  */
 export async function listSynologyFiles(dirPath) {
+  let sid = null;
   try {
-    if (!SYNOLOGY_SID) {
-      throw new Error('Synology session ID (SID) is not configured');
-    }
+    // Get a fresh Synology SID
+    sid = await getSynologySid();
 
     // Normalize the path
     const normalizedPath = dirPath.startsWith('/') ? dirPath.substring(1) : dirPath;
     const fullDirPath = `${BASE_PATH}/${normalizedPath}`;
 
     // Build the URL for listing files
-    const url = `${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(fullDirPath)}&_sid=${SYNOLOGY_SID}`;
+    const url = `${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(fullDirPath)}&_sid=${sid}`;
     
     const response = await axios.get(url);
+    
+    // Logout the Synology session
+    await logoutSynology(SYNOLOGY_BASE_URL, sid);
     
     return response.data;
   } catch (error) {
     console.error('Error listing Synology files:', error.message);
+    
+    // Attempt to logout if we have a SID
+    if (sid) {
+      try {
+        await logoutSynology(SYNOLOGY_BASE_URL, sid);
+      } catch (logoutError) {
+        console.error('Error logging out from Synology:', logoutError.message);
+      }
+    }
+    
     throw new Error(`Failed to list Synology files: ${error.message}`);
   }
 }
@@ -119,10 +144,10 @@ export async function listSynologyFiles(dirPath) {
  * @returns {Promise<Object>} - Response from the Synology API
  */
 export async function moveSynologyFile(oldPath, newPath) {
+  let sid = null;
   try {
-    if (!SYNOLOGY_SID) {
-      throw new Error('Synology session ID (SID) is not configured');
-    }
+    // Get a fresh Synology SID
+    sid = await getSynologySid();
 
     // Normalize paths
     const normalizedOldPath = oldPath.startsWith('/') ? oldPath.substring(1) : oldPath;
@@ -132,9 +157,12 @@ export async function moveSynologyFile(oldPath, newPath) {
     const fullNewPath = `${BASE_PATH}/${normalizedNewPath}`;
 
     // Build the URL for moving files
-    const url = `${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.CopyMove&version=3&method=start&path=${encodeURIComponent(fullOldPath)}&dest_folder_path=${encodeURIComponent(path.dirname(fullNewPath))}&remove_src=true&_sid=${SYNOLOGY_SID}`;
+    const url = `${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.CopyMove&version=3&method=start&path=${encodeURIComponent(fullOldPath)}&dest_folder_path=${encodeURIComponent(path.dirname(fullNewPath))}&remove_src=true&_sid=${sid}`;
     
     const response = await axios.get(url);
+    
+    // Logout the Synology session
+    await logoutSynology(SYNOLOGY_BASE_URL, sid);
     
     return {
       success: true,
@@ -144,6 +172,16 @@ export async function moveSynologyFile(oldPath, newPath) {
     };
   } catch (error) {
     console.error('Error moving Synology file:', error.message);
+    
+    // Attempt to logout if we have a SID
+    if (sid) {
+      try {
+        await logoutSynology(SYNOLOGY_BASE_URL, sid);
+      } catch (logoutError) {
+        console.error('Error logging out from Synology:', logoutError.message);
+      }
+    }
+    
     throw new Error(`Failed to move Synology file: ${error.message}`);
   }
 }
