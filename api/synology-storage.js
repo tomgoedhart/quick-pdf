@@ -2,7 +2,9 @@ import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { getSynologySid, logoutSynology } from './synology-auth.js';
+import { uploadToSynologyWithCurl, moveSynologyFileWithCurl } from './synology-curl.js';
 
 // Initialize Synology client configuration
 const SYNOLOGY_BASE_URL = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
@@ -19,64 +21,18 @@ const BASE_PATH = process.env.SYNOLOGY_BASE_PATH || '/data/quick-opslag';
  * @returns {Promise<Object>} - The response from the Synology API
  */
 export async function uploadToSynology(fileBuffer, filePath, contentType = 'application/pdf') {
-  let sid = null;
   try {
-    // Get a fresh Synology SID
-    sid = await getSynologySid();
-
-    // Normalize the path: remove leading slash if present
-    const normalizedPath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+    console.log(`Uploading to Synology using uploadToSynologyWithCurl: ${filePath}`);
+    console.log(`File size: ${fileBuffer.length} bytes`);
     
-    // Split path into directory and filename
-    const dirname = path.dirname(normalizedPath);
-    const filename = path.basename(normalizedPath);
-    
-    // Create the full directory path
-    const fullDirPath = `${BASE_PATH}/${dirname}`;
-    
-    // Create form data
-    const formData = new FormData();
-    formData.append('file', fileBuffer, {
-      filename: filename,
-      contentType: contentType
-    });
-
-    // Build the URL with proper encoding
-    const url = `${SYNOLOGY_BASE_URL}?api=${SYNOLOGY_API}&version=${SYNOLOGY_VERSION}&method=${SYNOLOGY_METHOD}&path=${encodeURIComponent(fullDirPath)}&create_parents=true&overwrite=true&_sid=${sid}`;
-    
-    console.log(`Uploading to Synology: ${fullDirPath}/${filename}`);
-    
-    // Get the form data as a buffer to calculate content length
-    const formBuffer = await new Promise((resolve, reject) => {
-      formData.getBuffer((err, buffer) => {
-        if (err) reject(err);
-        else resolve(buffer);
-      });
-    });
-    
-    // Make the request with explicit Content-Length header
-    const response = await axios({
-      method: 'post',
-      url: url,
-      data: formData,
-      headers: {
-        ...formData.getHeaders(),
-        'Content-Length': formBuffer.length.toString()
-      },
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity
-    });
-
-    console.log('Synology upload response:', response.data);
-    
-    // Logout the Synology session
-    await logoutSynology(SYNOLOGY_BASE_URL, sid);
+    // Use the existing uploadToSynologyWithCurl function which is known to work
+    const result = await uploadToSynologyWithCurl(fileBuffer, filePath);
     
     return {
       success: true,
-      data: response.data,
-      url: `synology://${fullDirPath}/${filename}`,
-      path: `${fullDirPath}/${filename}`
+      data: result.data,
+      url: result.url,
+      path: result.path
     };
   } catch (error) {
     console.error('Error uploading to Synology:', error.message);
@@ -115,7 +71,26 @@ export async function listSynologyFiles(dirPath) {
     // Build the URL for listing files
     const url = `${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(fullDirPath)}&_sid=${sid}`;
     
-    const response = await axios.get(url);
+    console.log(`Listing files in Synology directory: ${fullDirPath}`);
+    
+    // Use curl command for listing which is consistent with our other operations
+    const { exec } = await import('child_process');
+    const execPromise = util => new Promise((resolve, reject) => {
+      exec(util, (error, stdout, stderr) => {
+        if (error) {
+          console.error('Curl command execution error:', error.message);
+          reject(error);
+        } else {
+          resolve({ stdout, stderr });
+        }
+      });
+    });
+    
+    const curlCommand = `curl --insecure --silent --max-time 10 --location '${url}'`;
+    const { stdout } = await execPromise(curlCommand);
+    
+    // Parse the response
+    const response = { data: JSON.parse(stdout) };
     
     // Logout the Synology session
     await logoutSynology(SYNOLOGY_BASE_URL, sid);
@@ -144,44 +119,20 @@ export async function listSynologyFiles(dirPath) {
  * @returns {Promise<Object>} - Response from the Synology API
  */
 export async function moveSynologyFile(oldPath, newPath) {
-  let sid = null;
   try {
-    // Get a fresh Synology SID
-    sid = await getSynologySid();
-
-    // Normalize paths
-    const normalizedOldPath = oldPath.startsWith('/') ? oldPath.substring(1) : oldPath;
-    const normalizedNewPath = newPath.startsWith('/') ? newPath.substring(1) : newPath;
+    console.log(`Moving Synology file using moveSynologyFileWithCurl: ${oldPath} to ${newPath}`);
     
-    const fullOldPath = `${BASE_PATH}/${normalizedOldPath}`;
-    const fullNewPath = `${BASE_PATH}/${normalizedNewPath}`;
-
-    // Build the URL for moving files
-    const url = `${SYNOLOGY_BASE_URL}?api=SYNO.FileStation.CopyMove&version=3&method=start&path=${encodeURIComponent(fullOldPath)}&dest_folder_path=${encodeURIComponent(path.dirname(fullNewPath))}&remove_src=true&_sid=${sid}`;
-    
-    const response = await axios.get(url);
-    
-    // Logout the Synology session
-    await logoutSynology(SYNOLOGY_BASE_URL, sid);
+    // Use the existing moveSynologyFileWithCurl function which is known to work
+    const result = await moveSynologyFileWithCurl(oldPath, newPath);
     
     return {
       success: true,
-      data: response.data,
-      from: fullOldPath,
-      to: fullNewPath
+      data: result.data,
+      from: result.from,
+      to: result.to
     };
   } catch (error) {
     console.error('Error moving Synology file:', error.message);
-    
-    // Attempt to logout if we have a SID
-    if (sid) {
-      try {
-        await logoutSynology(SYNOLOGY_BASE_URL, sid);
-      } catch (logoutError) {
-        console.error('Error logging out from Synology:', logoutError.message);
-      }
-    }
-    
     throw new Error(`Failed to move Synology file: ${error.message}`);
   }
 }

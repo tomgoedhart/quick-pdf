@@ -1,7 +1,8 @@
 import sgMail from "@sendgrid/mail";
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { promises as fs } from 'fs';
+import { promises as fsPromises } from 'fs';
+import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { getSynologySid, logoutSynology } from './synology-auth.js';
 
@@ -23,6 +24,9 @@ function authenticate(req) {
 // Helper function to parse Synology path and download file
 async function downloadFromSynology(path) {
   let sid = null;
+  // Define synologyBaseUrl outside the try block so it's available in catch blocks
+  const synologyBaseUrl = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
+  
   try {
     // Check if this is a synology:// protocol format or a relative path
     let relativePath;
@@ -41,9 +45,6 @@ async function downloadFromSynology(path) {
     // Create a temporary file for the downloaded PDF
     const tempFilePath = `/tmp/${uuidv4()}.pdf`;
     
-    // Construct the Synology API URL
-    const synologyBaseUrl = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
-    
     // Get a fresh Synology session ID for this request
     sid = await getSynologySid();
     
@@ -60,14 +61,14 @@ async function downloadFromSynology(path) {
     }
     
     // Check if the file was downloaded successfully
-    if (fs.existsSync(tempFilePath) && (await fs.stat(tempFilePath)).size > 0) {
-      console.log(`Successfully downloaded file to ${tempFilePath}, size: ${(await fs.stat(tempFilePath)).size} bytes`);
+    if (fs.existsSync(tempFilePath) && fs.statSync(tempFilePath).size > 0) {
+      console.log(`Successfully downloaded file to ${tempFilePath}, size: ${fs.statSync(tempFilePath).size} bytes`);
       
       // Read the file into a buffer
-      const fileBuffer = await fs.readFile(tempFilePath);
+      const fileBuffer = await fsPromises.readFile(tempFilePath);
       
       // Clean up the temporary file
-      await fs.unlink(tempFilePath);
+      await fsPromises.unlink(tempFilePath);
       
       // Extract the filename from the path
       const filename = relativePath.split('/').pop();

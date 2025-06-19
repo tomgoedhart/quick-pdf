@@ -14,6 +14,9 @@ const printPDF = async (path, printer) => {
   // Check if this is a synology:// protocol format
   if (typeof path === 'string' && path.startsWith('synology://')) {
     let sid = null;
+    // Define synologyBaseUrl outside the try block so it's available in catch blocks
+    const synologyBaseUrl = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
+    
     try {
       console.log('Detected Synology path format, using Synology API to download');
       
@@ -24,9 +27,6 @@ const printPDF = async (path, printer) => {
       
       // Create a temporary file for the downloaded PDF
       const tempFilePath = `/tmp/${uuidv4()}.pdf`;
-      
-      // Construct the Synology API URL
-      const synologyBaseUrl = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
       
       // Get a fresh Synology session ID for this request
       console.log('Getting fresh Synology session ID');
@@ -85,6 +85,10 @@ const printPDF = async (path, printer) => {
   }
   // Check if this is a Synology URL (full URL format)
   else if (typeof path === 'string' && path.includes('quickgraveer.synology.me') && path.includes('SYNO.FileStation.Download')) {
+    // Define synologyBaseUrl outside the try block so it's available in catch blocks
+    const synologyBaseUrl = process.env.SYNOLOGY_BASE_URL || 'https://quickgraveer.synology.me:5001/webapi/entry.cgi';
+    let sid = null;
+    
     try {
       console.log('Detected Synology URL with potential self-signed certificate, using curl to download');
       
@@ -154,7 +158,7 @@ const printPDF = async (path, printer) => {
   
   // Prepare the request payload
   const payload = {
-    s3_url: finalPath,
+    s3_url: finalPath.startsWith('/tmp/') ? finalPath : (finalPath.startsWith('synology://') ? finalPath : `file://${finalPath}`),
     printer: printer || null,
   };
 
