@@ -165,6 +165,9 @@ const printPDF = async (path, printer) => {
   console.log("Printing PDF:", payload);
 
   try {
+    console.log(`Sending print request to: ${process.env.NODE_PRINTER_URL}`);
+    console.log('Print request payload:', JSON.stringify(payload, null, 2));
+    
     const response = await fetch(process.env.NODE_PRINTER_URL, {
       method: "POST",
       headers: {
@@ -173,12 +176,74 @@ const printPDF = async (path, printer) => {
       body: JSON.stringify(payload),
     });
 
+    // Log response details
+    console.log(`Printer service response status: ${response.status} ${response.statusText}`);
+    console.log('Printer service response headers:', JSON.stringify(Object.fromEntries([...response.headers.entries()]), null, 2));
+    
+    // Check for non-JSON responses first by examining content-type
+    const contentType = response.headers.get('content-type');
+    console.log(`Response content-type: ${contentType}`);
+    
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to print PDF");
+      // Handle non-JSON error responses
+      if (!contentType || !contentType.includes('application/json')) {
+        const errorText = await response.text();
+        console.error('Received non-JSON error response:');
+        console.error('----------------------------------------');
+        console.error(errorText);
+        console.error('----------------------------------------');
+        
+        // Try to extract useful information from HTML error pages
+        let errorMessage = `Printer service returned non-JSON response with status ${response.status}`;
+        if (errorText.includes('<title>')) {
+          const titleMatch = errorText.match(/<title>([^<]+)<\/title>/);
+          if (titleMatch && titleMatch[1]) {
+            errorMessage += ` - ${titleMatch[1]}`;
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      try {
+        const errorData = await response.json();
+        console.error('Printer service error response (JSON):', JSON.stringify(errorData, null, 2));
+        throw new Error(errorData.error || "Failed to print PDF");
+      } catch (jsonError) {
+        console.error('Failed to parse error response as JSON:', jsonError);
+        
+        // Try to get the raw response text
+        try {
+          const rawText = await response.clone().text();
+          console.error('Raw response text:');
+          console.error('----------------------------------------');
+          console.error(rawText);
+          console.error('----------------------------------------');
+        } catch (textError) {
+          console.error('Could not get raw response text:', textError);
+        }
+        
+        throw new Error(`Failed to print PDF (Status: ${response.status})`);
+      }
     }
 
-    const data = await response.json();
+    // For successful responses, also check content type
+    if (!contentType || !contentType.includes('application/json')) {
+      const responseText = await response.text();
+      console.error('Received non-JSON success response:');
+      console.error('----------------------------------------');
+      console.error(responseText);
+      console.error('----------------------------------------');
+      throw new Error('Printer service returned non-JSON response');
+    }
+    
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('Failed to parse success response as JSON:', jsonError);
+      throw new Error('Failed to parse printer service response');
+    }
     
     // Clean up temporary file if it was created
     if (finalPath !== path && finalPath.startsWith('/tmp/') && fs.existsSync(finalPath)) {
