@@ -157,12 +157,40 @@ const printPDF = async (path, printer) => {
   }
   
   // Prepare the request payload
-  const payload = {
-    s3_url: finalPath.startsWith('/tmp/') ? finalPath : (finalPath.startsWith('synology://') ? finalPath : `file://${finalPath}`),
-    printer: printer || null,
+  let payload = {
+    printer: printer || null
   };
+  
+  // If this is a local /tmp path on Vercel, we need to send the file as base64
+  if (finalPath.startsWith('/tmp/')) {
+    try {
+      // Read the file as binary data
+      console.log(`Reading file for base64 conversion: ${finalPath}`);
+      const fileData = fs.readFileSync(finalPath);
+      
+      // Convert to base64
+      const base64Data = fileData.toString('base64');
+      console.log(`Successfully converted file to base64 (${base64Data.length} chars)`); 
+      
+      // Add base64 data to payload
+      payload.base64_pdf = base64Data;
+    } catch (error) {
+      console.error(`Error converting file to base64: ${error.message}`);
+      throw new Error(`Failed to convert file to base64: ${error.message}`);
+    }
+  } 
+  // For Synology URLs, use the URL directly
+  else if (typeof path === 'string' && path.startsWith('synology://')) {
+    console.log(`Using Synology URL for printing: ${path}`);
+    payload.url = path;
+  }
+  // For any other URLs, pass them directly
+  else {
+    console.log(`Using URL for printing: ${finalPath}`);
+    payload.url = finalPath;
+  }
 
-  console.log("Printing PDF:", payload);
+  console.log("Printing PDF payload prepared");
 
   try {
     console.log(`Sending print request to: ${process.env.NODE_PRINTER_URL}`);
