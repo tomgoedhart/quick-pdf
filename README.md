@@ -63,18 +63,18 @@ So:
 
 - The call is being made to vercel (eg https://quickgraveer-pdf-api.vercel.app/quote)
 - Script on Vercel generates the PDF and uploads it to S3
-- Script on Vercel calls the printer API on: https://cb1d-84-246-3-220.ngrok-free.app/print
+- Script on Vercel calls the printer API on: https://cheaply-hip-mudfish.ngrok-free.app/print
 - Ngrok puts call through to service on local server at Quick (eg http://0.0.0.0:6789/print)
 - Local service prints PDF to printer
 
-See printer list at https:/clam-guiding-gelding.ngrok-free.app/printers
+See printer list at https://cheaply-hip-mudfish.ngrok-free.app/printers
 
 # Ngrok
 
-ngrok http --url=clam-guiding-gelding.ngrok-free.app 6789
+ngrok http --url=cheaply-hip-mudfish.ngrok-free.app 6789
 
 # To get the print service running on the server at Quick
 
 source venv/bin/activate  
 gunicorn --bind 0.0.0.0:6789 app:app &  
-ngrok http --url=clam-guiding-gelding.ngrok-free.app http://0.0.0.0:6789 &
+ngrok http --url=cheaply-hip-mudfish.ngrok-free.app http://0.0.0.0:6789 &
