@@ -13,7 +13,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.722.0",
     "@aws-sdk/lib-storage": "^3.722.0",
-    "@sendgrid/mail": "^8.1.4",
+
     "@sparticuz/chromium": "^131.0.1",
     "@vercel/node": "^5.0.2",
     "axios": "^1.7.9",
@@ -21,7 +21,7 @@
     "express": "^4.21.2",
     "puppeteer": "^23.11.1",
     "puppeteer-core": "^23.11.1",
+    "sib-api-v3-sdk": "^8.5.0",
     "uuid": "^9.0.1"
-  },
-  "devDependencies": {}
+  }
 }

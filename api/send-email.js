@@ -1,4 +1,4 @@
-import sgMail from "@sendgrid/mail";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { promises as fsPromises } from 'fs';
@@ -8,8 +8,11 @@ import { getSynologySid, logoutSynology } from './synology-auth.js';
 
 const execPromise = promisify(exec);
 
-// Initialize SendGrid with environment variable
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Initialize Brevo with environment variable
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+const apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // Authentication function
 function authenticate(req) {
@@ -123,65 +126,76 @@ export default async function handler(req, res) {
 
     // Validate inputs
     if (
-      !attachment ||
       !email ||
       !from_email ||
       !from_name ||
       !subject ||
       !message
     ) {
+      console.log('Validation failed:', { email, from_email, from_name, subject, message });
       return res.status(400).json({
         error: "Missing required parameters",
       });
     }
 
-    // Download the attachment from Synology
+    // Download the attachment from Synology if provided
     let fileBuffer;
     let filename;
     
-    try {
-      console.log('Downloading attachment using Synology API');
-      const result = await downloadFromSynology(attachment);
-      fileBuffer = result.fileBuffer;
-      filename = result.filename;
-    } catch (error) {
-      console.error('Error downloading from Synology:', error);
-      return res.status(500).json({
-        error: 'Error accessing file from Synology',
-        details: error.message,
-      });
+    if (attachment) {
+      try {
+        console.log('Downloading attachment using Synology API');
+        const result = await downloadFromSynology(attachment);
+        fileBuffer = result.fileBuffer;
+        filename = result.filename;
+      } catch (error) {
+        console.error('Error downloading from Synology:', error);
+        return res.status(500).json({
+          error: 'Error accessing file from Synology',
+          details: error.message,
+        });
+      }
     }
     
-    // File buffer should be available at this point
-
-    // Prepare email with attachment and sender name
-    const msg = {
-      to: email,
-      from: {
-        email: from_email,
-        name: from_name,
-      },
-      subject: subject,
-      text: message,
-      html: message.replace(/\n/g, "<br>"),
-      attachments: [
-        {
-          content: fileBuffer.toString("base64"),
-          filename: filename,
-          type: "application/pdf",
-          disposition: "attachment",
-        },
-      ],
+    // Prepare email with optional attachment and sender name
+    console.log('Preparing email with params:', { email, from_email, from_name, subject, hasAttachment: !!attachment });
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    
+    sendSmtpEmail.to = [{
+      email: email,
+      name: "Recipient"
+    }];
+    
+    sendSmtpEmail.sender = {
+      email: from_email,
+      name: from_name
     };
+    
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.textContent = message;
+    sendSmtpEmail.htmlContent = message.replace(/\n/g, "<br>");
+    
+    // Add attachment if provided
+    if (fileBuffer && filename) {
+      sendSmtpEmail.attachment = [{
+        content: fileBuffer.toString("base64"),
+        name: filename,
+        contentType: "application/pdf"
+      }];
+    }
 
     // Send email
     try {
-      await sgMail.send(msg);
+      console.log('Sending email with Brevo...');
+      const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log('Email sent successfully');
       return res.status(200).json({
         message: "Email sent successfully",
+        data: data
       });
     } catch (emailError) {
-      console.error("SendGrid Error:", emailError);
+      console.error("Brevo Error:", emailError);
+      console.error("Error details:", emailError.response?.body || emailError.message);
       if (emailError.response) {
         return res.status(400).json({
           error: "Email sending failed",
