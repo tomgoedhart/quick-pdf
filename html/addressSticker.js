@@ -24,6 +24,7 @@ const addressStickerHTML = (data) => {
     <body>
       <div class="address-sticker">
         <h1>${data.header}</h1>
+        ${data.contact_person ? `<p>${data.contact_person}</p>` : ''}
         <p>${data.line_1}</p>
         <p>${data.line_2}</p>
         <p>${data.line_3}</p>
