@@ -17,6 +17,15 @@ const orderHTML = (data) => {
     data.totals?.small_order_fee?.cost &&
     !data.totals.small_order_fee.cost.replace("€", "").trim().startsWith("0");
 
+  // Debug logging for small order fee
+  console.log("Small Order Fee Debug:", {
+    label: data.totals?.small_order_fee?.label,
+    cost: data.totals?.small_order_fee?.cost,
+    hasSmallOrderFee: hasSmallOrderFee,
+    costAfterProcessing: data.totals?.small_order_fee?.cost ? 
+      data.totals.small_order_fee.cost.replace("€", "").trim() : null
+  });
+
   const hidePrices = data.hidePrices;
   const hideSizes = data.hideSizes;
 
@@ -152,8 +161,8 @@ const orderHTML = (data) => {
               ${
                 hasSmallOrderFee && !hasDiscount
                   ? `
-                  <td>${data.totals.discount.label}</td>
-                  <td>${data.totals.discount.cost}</td>
+                  <td>${data.totals.small_order_fee.label}</td>
+                  <td>${data.totals.small_order_fee.cost}</td>
                 `
                   : ""
               }
